@@ -1,0 +1,14 @@
+{
+  "manifest_version": 2,
+  "name": "Select History",
+  "version": "0.0.1",
+  "description": "Test",
+  "author": "jimpei",
+  "browser_action": {
+    "default_icon": "icon.png",
+    "default_popup": "popup.html"
+  },
+  "permissions": [
+    "history"
+  ]
+}
