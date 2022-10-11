@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', () => {
   // SEARCHイベントのクリックイベント設定
   let divs = document.querySelectorAll('#searchBotton')
@@ -9,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   divs[0] = divs[0].addEventListener('click', postClickEvent)
 })
 
-let accessData = ''
+let accessData;
 
 // SEARCHクリックイベント
 const searchClickEvent = () =>  {
@@ -25,9 +24,6 @@ const searchClickEvent = () =>  {
     startTime: searchStartDate,
     maxResults: 10000
   }
-  const hoge = chrome.extension.getURL('src/js/gmail.js');
-  console.log(hoge)
-
 
   const accessArray = []
   const regDomain = /^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n?]+)/img
@@ -40,9 +36,9 @@ const searchClickEvent = () =>  {
       accessArray.push(domain)
     }
 
-    var accessObj = {};
+    let accessObj = {};
     for (let i = 0; i < accessArray.length; i++) {
-      var domain = accessArray[i];
+      const domain = accessArray[i];
       accessObj[domain] = (accessObj[domain] || 0) + 1;
     }
     accessData = JSON.stringify(Object.entries(accessObj).map(([key, value]) => ({[key]: value})))
@@ -52,7 +48,12 @@ const searchClickEvent = () =>  {
 
 // POSTクリックイベント
 const postClickEvent = () =>  {
-  // accessArray.forEach(function (url) {
-  //   // Json成形してPOST
-  // })
+  const url = 'http://localhost:3000'
+  // テスト時はここのサブディレクトリを変更
+  const subdir = '/v1/hoge'
+  const xhr = new XMLHttpRequest();
+
+  xhr.open('POST', `${url}${subdir}`);
+  xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded;charset=UTF-8');
+  xhr.send(`urls=${accessData}`);
 }
