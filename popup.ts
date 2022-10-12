@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
 const accessArray = []
 
 // SEARCHクリックイベント
-const searchClickEvent = () =>  {
+const searchClickEvent = () => {
   const ul = document.querySelector('#historyList')
   const searchText = document.querySelector('#searchText')
 
@@ -26,7 +26,7 @@ const searchClickEvent = () =>  {
   }
 
   // 履歴取得
-  chrome.history.search(searchQuery, function (accessItems) {
+  chrome.history.search(searchQuery, (accessItems) => {
     // 履歴の数だけループし、検索結果を表示する
     for (let i = 0; i < accessItems.length; i++) {
       const accessObj = {};
