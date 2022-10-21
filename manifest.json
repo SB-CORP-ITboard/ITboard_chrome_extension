@@ -1,14 +1,26 @@
 {
-  "manifest_version": 2,
-  "name": "ITboard Chrome Extension$",
+  "manifest_version": 3,
+  "name": "ITboard Chrome Extension",
   "version": "0.0.1",
-  "description": "シャドーIT ブラウザ拡張機能",
+  "description": "ITboard Chrome Extension",
   "author": "jimpei",
-  "browser_action": {
+  "action": {
     "default_icon": "icon.png",
     "default_popup": "popup.html"
   },
   "permissions": [
-    "history"
+    "history",
+    "background",
+    "identity",
+    "identity.email",
+    "alarms",
+    "storage"
+  ],
+  "background": {
+    "service_worker": "src/js/background.js",
+    "type": "module"
+  },
+  "host_permissions": [
+    "http://localhost:3000/"
   ]
 }
