@@ -14,9 +14,8 @@ const SearchQuery = {
 }
 
 // リクエスト先
-// const PostUrl =  "http://localhost:3000/v1/browsing_histories"
-const PostUrl =  "http://localhost:3000/v1/devices"
-
+const PostUrl =  "http://localhost:3000/v1/browsing_histories"
+// const PostUrl =  "http://localhost:3000/v1/devices"
 
 const con = {
   termExec: TermExec,

@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // SEARCHイベントのクリックイベント設定
+  // GetHistoryイベントのクリックイベント設定
   let divs = document.querySelectorAll("#historyBotton")
   divs[0].addEventListener("click", historyEvent)
 })

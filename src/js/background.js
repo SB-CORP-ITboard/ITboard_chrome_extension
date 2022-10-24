@@ -14,12 +14,11 @@ chrome.runtime.onInstalled.addListener(() => {
   })
 });
 
-// 定期実行設定
+// 定期間隔設定
 chrome.alarms.create("start_batch", { "periodInMinutes": con.termExec });
 
 // 定期実行
 chrome.alarms.onAlarm.addListener((alarm) => {
-
   // ユーザー情報取得
   chrome.identity.getProfileUserInfo((user) => {
 
