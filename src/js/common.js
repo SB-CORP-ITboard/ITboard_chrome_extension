@@ -21,7 +21,7 @@ export const historyEvent = (email) => {
     form.append('urls', JSON.stringify(accessArray))
     form.append('email', email)
 
-    fetch(con.postUrl, {
+    fetch(con.postShadowItUrl, {
       method: 'POST',
       body: form
     });

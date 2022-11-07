@@ -13,14 +13,20 @@ const SearchQuery = {
   maxResults: 1000000
 }
 
-// リクエスト先
-const PostUrl =  "http://localhost:3000/v1/browsing_histories"
+const BeginHistoryEventTime = 9
+const EndHistoryEventTime = 23
+
+const GetBatchDataUrl =  "http://localhost:3000/v1/browsing_histories"
+const PostShadowItUrl =  "http://localhost:3000/v1/browsing_histories"
 // const PostUrl =  "http://localhost:3000/v1/devices"
 
 const con = {
   termExec: TermExec,
   searchQuery: SearchQuery,
-  postUrl: PostUrl
+  beginHistoryEventTime: BeginHistoryEventTime,
+  endHistoryEventTime: EndHistoryEventTime,
+  getBatchDataUrl: GetBatchDataUrl,
+  postShadowItUrl: PostShadowItUrl
 }
 
 Object.freeze(con);

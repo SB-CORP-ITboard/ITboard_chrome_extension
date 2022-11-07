@@ -1,7 +1,7 @@
 import { historyEvent } from "./common.js"
 import { con } from "./const.js"
 
-// インストール時のイベント
+// インストール時実行
 chrome.runtime.onInstalled.addListener(() => {
 
   // ユーザー情報取得
@@ -33,7 +33,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
         if (localStorageDate !== nowDate) { return  }
 
         // 夜間バッチと重複しない時間帯で実行
-        if (9 < nowHour && nowHour < 23) {
+        if (con.beginHistoryEventTime < nowHour && nowHour < con.endHistoryEventTime) {
           chrome.storage.local.set({'postTimestamp': now.getTime()});
           historyEvent(user.email)
         }
