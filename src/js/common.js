@@ -18,6 +18,7 @@ export const batchDataEvent = async (email) => {
   let requestIndex = data.requestIndex
 
   // NOTE
+  // ９時に履歴取得開始
   // calcDistributeの値に応じてユーザーのリクエスト時間を配分
   // case1
   //   requestIndex: 10, calcDistribute: 60

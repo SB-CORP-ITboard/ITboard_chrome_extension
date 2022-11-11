@@ -16,9 +16,17 @@ const SearchQuery = {
 const BeginHistoryEventTime = 9
 const EndHistoryEventTime = 23
 
-const PostBatchDataUrl =  'http://localhost:3000/v1/shadow-its/distribute'
-const PostShadowItUrl =  'http://localhost:3000/v1/browsing_histories'
-// const PostUrl =  'http://localhost:3000/v1/devices'
+// ローカル確認用
+const PostBatchDataUrl =  'http://localhost:3000/v1/browser-extensions/distribute'
+const PostShadowItUrl =  'http://localhost:3000/v1/browser-extensions/browsing_histories'
+
+// STG確認用
+// const PostBatchDataUrl =  'https://stg-01.itboard.jp/v1/browser-extensions/distribute'
+// const PostShadowItUrl =  'https://stg-01.itboard.jp/v1/browser-extensions/browsing_histories'
+
+// 本番用
+// const PostBatchDataUrl =  'https://www.itboard.jp/v1/browser-extensions/distribute'
+// const PostShadowItUrl =  'https://www.itboard.jp/v1/browser-extensions/browsing_histories'
 
 const con = {
   termExec: TermExec,

@@ -35,7 +35,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 
         // 本日分の履歴取得確認
         // 取得済みの場合は処理を抜ける
-        if (localStorageDate !== nowDate) { return  }
+        if (localStorageDate !== nowDate) { return }
 
         // 夜間バッチと重複しない時間帯で実行
         // 重複する時間は処理を抜ける
