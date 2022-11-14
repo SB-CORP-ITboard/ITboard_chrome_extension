@@ -1,21 +1,21 @@
-import { con } from "./const.js"
+import { con } from "./const.js";
 
 //  バッチデータ取得
 export const batchDataEvent = async (email) => {
-  const form = new FormData()
-  form.append('email', email)
+  const form = new FormData();
+  form.append("email", email);
 
   const response = await fetch(con.postBatchDataUrl, {
-    method: 'POST',
-    body: form
+    method: "POST",
+    body: form,
   });
   const data = await response.json();
 
   // 分割(distributeHour)
   //  1の場合: calcDistribute == 60分
   //  2の場合: calcDistribute == 120分
-  const calcDistribute = data.distributeHour * 60
-  let requestIndex = data.requestIndex
+  const calcDistribute = data.distributeHour * 60;
+  let requestIndex = data.requestIndex;
 
   // NOTE
   // ９時に履歴取得開始
@@ -35,10 +35,10 @@ export const batchDataEvent = async (email) => {
 
   // requestIndexがcalcDistributeより少ない場合 (case1とcase3)
   // そのままrequestIndexを保存
-  let num = requestIndex / calcDistribute
-  if(num < 1){
-    chrome.storage.local.set({'requestIndex': requestIndex});
-    return
+  let num = requestIndex / calcDistribute;
+  if (num < 1) {
+    chrome.storage.local.set({ requestIndex: requestIndex });
+    return;
   }
 
   // requestIndexがcalcDistributeより多い場合 (case2とcase4)
@@ -50,42 +50,42 @@ export const batchDataEvent = async (email) => {
   //  2回目の処理:
   //   └ 160 - 120 = 40
   //   └ 40 / 120 = 0.3 → 40を保存
-  while (num < 1){
-    requestIndex -= calcDistribute
-    num = requestIndex / calcDistribute
-    if(num < 1){
-      chrome.storage.local.set({'requestIndex': requestIndex});
-      return
+  while (num < 1) {
+    requestIndex -= calcDistribute;
+    num = requestIndex / calcDistribute;
+    if (num < 1) {
+      chrome.storage.local.set({ requestIndex: requestIndex });
+      return;
     }
   }
-}
+};
 
 // ブラウザ履歴取得
 export const historyEvent = (email) => {
-  const accessArray = []
+  const accessArray = [];
 
   chrome.history.search(con.searchQuery, (accessItems) => {
     for (let i = 0; i < accessItems.length; i++) {
       const accessObj = {};
 
       // クエリパラメータ除外
-      accessObj['url'] = accessItems[i].url.replace(/\?.*$/,"");
-      accessObj['title'] = accessItems[i].title;
-      accessObj['accessCount'] = accessItems[i].visitCount;
-      accessObj['lastAccessDate'] = accessItems[i].lastVisitTime;
+      accessObj["url"] = accessItems[i].url.replace(/\?.*$/, "");
+      accessObj["title"] = accessItems[i].title;
+      accessObj["accessCount"] = accessItems[i].visitCount;
+      accessObj["lastAccessDate"] = accessItems[i].lastVisitTime;
 
-      const accessData = accessObj
-      accessArray.push(accessData)
+      const accessData = accessObj;
+      accessArray.push(accessData);
     }
 
     // 履歴データPOST
-    const form = new FormData()
-    form.append('data', JSON.stringify(accessArray))
-    form.append('email', email)
+    const form = new FormData();
+    form.append("data", JSON.stringify(accessArray));
+    form.append("email", email);
 
     fetch(con.postShadowItUrl, {
-      method: 'POST',
-      body: form
+      method: "POST",
+      body: form,
     });
-  })
-}
+  });
+};
