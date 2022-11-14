@@ -17,24 +17,24 @@ const BeginHistoryEventTime = 9
 const EndHistoryEventTime = 23
 
 // ローカル確認用
-const PostBatchDataUrl =  'http://localhost:3000/v1/browser-extensions/distribute'
-const PostShadowItUrl =  'http://localhost:3000/v1/browser-extensions/browsing_histories'
+const PostDevelopmentBatchDataUrl =  'http://localhost:3000/v1/browser-extensions/distribute'
+const PostDevelopmentShadowItUrl =  'http://localhost:3000/v1/browser-extensions/browsing-histories'
 
 // STG確認用
-// const PostBatchDataUrl =  'https://stg-01.itboard.jp/v1/browser-extensions/distribute'
-// const PostShadowItUrl =  'https://stg-01.itboard.jp/v1/browser-extensions/browsing_histories'
+// const PostStagingBatchDataUrl =  'https://stg-01.itboard.jp/v1/browser-extensions/distribute'
+// const PostStagingShadowItUrl =  'https://stg-01.itboard.jp/v1/browser-extensions/browsing_histories'
 
 // 本番用
-// const PostBatchDataUrl =  'https://www.itboard.jp/v1/browser-extensions/distribute'
-// const PostShadowItUrl =  'https://www.itboard.jp/v1/browser-extensions/browsing_histories'
+// const PostProductionBatchDataUrl =  'https://www.itboard.jp/v1/browser-extensions/distribute'
+// const PostProductionShadowItUrl =  'https://www.itboard.jp/v1/browser-extensions/browsing_histories'
 
 const con = {
   termExec: TermExec,
   searchQuery: SearchQuery,
   beginHistoryEventTime: BeginHistoryEventTime,
   endHistoryEventTime: EndHistoryEventTime,
-  postBatchDataUrl: PostBatchDataUrl,
-  postShadowItUrl: PostShadowItUrl
+  postBatchDataUrl: PostDevelopmentBatchDataUrl,
+  postShadowItUrl: PostDevelopmentShadowItUrl
 }
 
 Object.freeze(con);
