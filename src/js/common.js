@@ -35,8 +35,8 @@ export const batchDataEvent = async (email) => {
 
   // requestIndexがcalcDistributeより少ない場合 (case1とcase3)
   // そのままrequestIndexを保存
-  let num = Math.floor(requestIndex / calcDistribute)
-  if(num === 0){
+  let num = requestIndex / calcDistribute
+  if(num < 1){
     chrome.storage.local.set({'requestIndex': requestIndex});
     return
   }
@@ -50,10 +50,10 @@ export const batchDataEvent = async (email) => {
   //  2回目の処理:
   //   └ 160 - 120 = 40
   //   └ 40 / 120 = 0.3 → 40を保存
-  while (num === 0){
+  while (num < 1){
     requestIndex -= calcDistribute
-    num = Math.floor(requestIndex / calcDistribute)
-    if(num === 0){
+    num = requestIndex / calcDistribute
+    if(num < 1){
       chrome.storage.local.set({'requestIndex': requestIndex});
       return
     }
@@ -69,16 +69,18 @@ export const historyEvent = (email) => {
       const accessObj = {};
 
       // クエリパラメータ除外
-      const formatUrl = accessItems[i].url.replace(/\?.*$/,"");
-      accessObj[formatUrl] = accessItems[i].lastVisitTime;
+      accessObj['url'] = accessItems[i].url.replace(/\?.*$/,"");
+      accessObj['title'] = accessItems[i].title;
+      accessObj['accessCount'] = accessItems[i].visitCount;
+      accessObj['lastAccessDate'] = accessItems[i].lastVisitTime;
 
-      const accessData = JSON.stringify(accessObj)
+      const accessData = accessObj
       accessArray.push(accessData)
     }
 
     // 履歴データPOST
     const form = new FormData()
-    form.append('urls', JSON.stringify(accessArray))
+    form.append('data', JSON.stringify(accessArray))
     form.append('email', email)
 
     fetch(con.postShadowItUrl, {

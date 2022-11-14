@@ -44,14 +44,14 @@ chrome.alarms.onAlarm.addListener((alarm) => {
         }
 
         const requestTime = new Date()
-        const nowMinitue = now.Minutes()
+        const nowMinitue = now.getMinutes()
         const setRequestTime = requestTime.setHours(
           con.beginHistoryEventTime,
           storage.requestIndex,
           0
         )
-        const requestHours = setRequestTime.Hours()
-        const requestMinutes = setRequestTime.Minutes()
+        const requestHours = setRequestTime.getHours()
+        const requestMinutes = setRequestTime.getMinutes()
 
         // 各ユーザー割り振られた時間で実行
         if (nowHour === requestHours && nowMinitue == requestMinutes) {
