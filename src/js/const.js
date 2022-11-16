@@ -13,9 +13,15 @@ const SearchQuery = {
   maxResults: 1000000,
 };
 
+// 業務時間内の範囲
 const BeginHistoryEventTime = 9;
-const EndHistoryEventTime = 23;
+const EndHistoryEventTime = 18;
 
+// ユーザリクエスト順序ができない場合のランダム値
+const randomHour = 6;
+const RandomIndex = Math.floor(Math.random()*((randomHour * 60)-0)+0);
+
+// リクエスト先
 // ローカル確認用
 const PostDevelopmentBatchDataUrl =
   "http://localhost:3000/v1/browser-extensions/distribute";
@@ -39,6 +45,7 @@ const con = {
   searchQuery: SearchQuery,
   beginHistoryEventTime: BeginHistoryEventTime,
   endHistoryEventTime: EndHistoryEventTime,
+  randomIndex: RandomIndex,
   postBatchDataUrl: PostDevelopmentBatchDataUrl,
   postShadowItUrl: PostDevelopmentShadowItUrl,
 };
