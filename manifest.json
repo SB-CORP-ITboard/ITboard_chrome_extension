@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "ITboard Chrome Extension",
+  "name": "ITboard",
   "version": "0.0.1",
-  "description": "ITboard Chrome Extension",
+  "description": "シャドーIT検知をサポートするアプリケーションです。",
   "author": "jimpei",
   "permissions": [
     "history",
@@ -15,6 +15,15 @@
   "background": {
     "service_worker": "src/js/background-wrapper.js",
     "type": "module"
+  },
+  "icons": {
+    "16": "src/image/icon_16.png",
+    "48": "src/image/icon_48.png",
+    "128": "src/image/icon_128.png"
+},
+  "action": {
+    "default_icon": "src/image/icon_128.png",
+    "default_popup": "src/html/popup.html"
   },
   "host_permissions": [
     "http://localhost:3000/",
