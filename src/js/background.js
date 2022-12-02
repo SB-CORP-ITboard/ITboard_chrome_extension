@@ -6,16 +6,15 @@ import {
 } from "./common.js";
 import { con } from "./const.js";
 
+// 各タイミングで処理を行う
+// インストール時
+// 定期間隔
 export const backgroundEvent = () => {
-  // インストール時実行
   chrome.runtime.onInstalled.addListener(() => {
     installEvent();
   });
 
-  // 定期間隔設定
   chrome.alarms.create("start_batch", { periodInMinutes: con.termExec });
-
-  // 定期実行
   chrome.alarms.onAlarm.addListener((alarm) => {
     batchEvent(alarm);
   });
@@ -25,24 +24,26 @@ export const backgroundEvent = () => {
   chrome.storage.local.set({ randomIndex: con.randomIndex });
 };
 
+// 履歴情報取得(インストール時)
+// ユーザーのリクエスト順序が割り振られていない場合は履歴取得をしない
 const installEvent = () => {
-  // ユーザー情報取得
   chrome.identity.getProfileUserInfo((user) => {
     if (user.email) {
       postBatchDataEvent(user.email).then(value => {
-        // ユーザーのリクエスト順序が割り振られていない場合は履歴取得しない
+
         if (value !== "undefined") {
           const now = new Date();
           chrome.storage.local.set({ postTimestamp: now.getTime() });
           historyEvent(user.email);
         }
+
       });
     }
   });
 }
 
+// 履歴情報取得(定期)
 const batchEvent = (alarm) => {
-  // ユーザー情報取得
   chrome.identity.getProfileUserInfo((user) => {
     if (user.email && alarm.name == "start_batch") {
 
