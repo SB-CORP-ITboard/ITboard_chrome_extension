@@ -5,12 +5,13 @@ const TermExec = 1;
 const microsecondsPerDay = 1000 * 60 * 60 * 24; // １日
 const date = 60;
 const searchStartTime = new Date().getTime() - microsecondsPerDay * date;
+const searchCount = 1000000
 
 // 履歴取得条件
 const SearchQuery = {
   text: "",
   startTime: searchStartTime,
-  maxResults: 1000000,
+  maxResults: searchCount,
 };
 
 // 業務時間内の範囲
@@ -18,7 +19,7 @@ const BeginHistoryEventTime = 9;
 const EndHistoryEventTime = 18;
 
 // ユーザリクエスト順序ができない場合のランダム値
-const randomHour = 6;
+const randomHour = 8;
 const RandomIndex = Math.floor(Math.random()*((randomHour * 60)-0)+0);
 
 // リクエスト先
