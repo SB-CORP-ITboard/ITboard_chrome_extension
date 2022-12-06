@@ -2,24 +2,25 @@ import { con } from "./const.js";
 
 // ユーザーのリクエストの順序を取得
 export const postBatchDataEvent = async (email) => {
-  const form = new FormData();
-  form.append("email", email);
-
   const response = await fetch(con.postBatchDataUrl, {
+    headers:{
+      'Accept': 'application/json, */*',
+      'Content-type':'application/json'
+    },
     method: "POST",
-    body: form,
+    body: JSON.stringify({ email: email }),
   });
 
   if(response.ok){
-    const data = await response.json();
+    chrome.storage.local.set({ isMasterServiceUser: true });
 
+    const data = await response.json();
     // 分割(distributeHour)
     //  1の場合: calcDistribute == 60分
     //  2の場合: calcDistribute == 120分
     const calcDistribute = data.distributeHour * 60;
     let requestIndex = data.requestIndex;
 
-    // NOTE
     // ９時に履歴取得開始
     // calcDistributeの値に応じてユーザーのリクエスト時間を配分
     // case1
@@ -61,6 +62,7 @@ export const postBatchDataEvent = async (email) => {
       }
     }
   } else {
+    chrome.storage.local.set({ isMasterServiceUser: false });
     return;
   }
 };
@@ -84,13 +86,13 @@ export const historyEvent = (email) => {
     }
 
     // 履歴データPOST
-    const form = new FormData();
-    form.append("data", JSON.stringify(accessArray));
-    form.append("email", email);
-
     fetch(con.postShadowItUrl, {
+      headers:{
+        'Accept': 'application/json, */*',
+        'Content-type':'application/json'
+      },
       method: "POST",
-      body: form,
+      body: JSON.stringify({email: email, data: accessArray}),
     });
   });
 };
