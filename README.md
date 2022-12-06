@@ -2,6 +2,12 @@
 Chrome 閲覧履歴取得のブラウザ拡張機能
 
 ---
+## 対象ブラウザ
+```
+・Google Chrome
+・Chromiumベース Microsoft Edge
+```
+---
 
 ## ローカル環境確認手順
 ### Google Chrome
