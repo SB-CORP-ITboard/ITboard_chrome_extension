@@ -1,4 +1,4 @@
-import { backgroundEvent } from "./background.js";
+import { backgroundEvent } from "./index.js";
 
 try {
   backgroundEvent();

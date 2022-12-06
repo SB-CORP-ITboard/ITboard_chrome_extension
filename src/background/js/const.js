@@ -24,21 +24,21 @@ const RandomIndex = Math.floor(Math.random()*((randomHour * 60)-0)+0);
 
 // リクエスト先
 // ローカル確認用
-const PostDevelopmentBatchDataUrl =
+const PostDistributeUrl =
   "http://localhost:3000/v1/browser-extensions/distribute";
-const PostDevelopmentShadowItUrl =
+const PostShadowItUrl =
   "http://localhost:3000/v1/browser-extensions/browsing-histories";
 
 // STG確認用
-// const PostStagingBatchDataUrl =
+// const PostDistributeUrl =
 //   'https://stg-01.itboard.jp/v1/browser-extensions/distribute'
-// const PostStagingShadowItUrl =
+// const PostShadowItUrl =
 //   'https://stg-01.itboard.jp/v1/browser-extensions/browsing_histories'
 
 // 本番用
-// const PostProductionBatchDataUrl =
+// const PostDistributeUrl =
 //   'https://www.itboard.jp/v1/browser-extensions/distribute'
-// const PostProductionShadowItUrl =
+// const PostShadowItUrl =
 //   'https://www.itboard.jp/v1/browser-extensions/browsing_histories'
 
 const con = {
@@ -47,8 +47,8 @@ const con = {
   beginHistoryEventTime: BeginHistoryEventTime,
   endHistoryEventTime: EndHistoryEventTime,
   randomIndex: RandomIndex,
-  postBatchDataUrl: PostDevelopmentBatchDataUrl,
-  postShadowItUrl: PostDevelopmentShadowItUrl,
+  postDistributeUrl: PostDistributeUrl,
+  postShadowItUrl: PostShadowItUrl,
 };
 
 Object.freeze(con);
