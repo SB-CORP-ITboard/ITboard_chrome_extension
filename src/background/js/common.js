@@ -2,7 +2,7 @@ import { con } from "./const.js";
 
 // ユーザーのリクエストの順序を取得
 export const postBatchDataEvent = async (email) => {
-  const response = await fetch(con.postBatchDataUrl, {
+  const response = await fetch(con.postDistributeUrl, {
     headers:{
       'Accept': 'application/json, */*',
       'Content-type':'application/json'
@@ -12,8 +12,6 @@ export const postBatchDataEvent = async (email) => {
   });
 
   if(response.ok){
-    chrome.storage.local.set({ isMasterServiceUser: true });
-
     const data = await response.json();
     // 分割(distributeHour)
     //  1の場合: calcDistribute == 60分
@@ -61,10 +59,7 @@ export const postBatchDataEvent = async (email) => {
         return requestIndex;
       }
     }
-  } else {
-    chrome.storage.local.set({ isMasterServiceUser: false });
-    return;
-  }
+  };
 };
 
 // ブラウザ履歴取得

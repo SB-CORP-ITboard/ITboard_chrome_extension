@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "ITboard",
   "version": "0.0.1",
-  "description": "シャドーIT検知をサポートするアプリケーションです。",
+  "description": "シャドーIT検知をサポートするアプリケーションです。対応ブラウザ: Google Chrome, Chromiumベース Microsoft Edge",
   "author": "jimpei",
   "permissions": [
     "history",
@@ -13,7 +13,7 @@
     "storage"
   ],
   "background": {
-    "service_worker": "src/js/background-wrapper.js",
+    "service_worker": "src/background/js/wrapper.js",
     "type": "module"
   },
   "icons": {
@@ -23,7 +23,7 @@
 },
   "action": {
     "default_icon": "src/image/icon_128.png",
-    "default_popup": "src/html/popup.html"
+    "default_popup": "src/popup/index.html"
   },
   "host_permissions": [
     "http://localhost:3000/",
