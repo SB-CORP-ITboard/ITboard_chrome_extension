@@ -4,8 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const el = document.createElement('div');
 
     if (user.email.length === 0) {
-      patternBrowser(el)
-    } else if (await checkMasterServiceUser(user)) {
+      addPopupByBrowser(el)
+    } else if (await existsInUserMaster(user)) {
       el.innerText = `ユーザマスタに${user.email}が存在しません。\n 管理者に問い合わせてください。`
       el.style.width = '370px'
     } else {
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
 })
 
 // ブラウザ別に注記を変更
-const patternBrowser = (el) => {
+const addPopupByBrowser = (el) => {
   const agent = window.navigator.userAgent.toLowerCase()
 
   if (agent.indexOf("edg") != -1) {
@@ -31,7 +31,7 @@ const patternBrowser = (el) => {
 }
 
 // ユーザーマスタの確認
-const checkMasterServiceUser = async (user) => {
+const existsInUserMaster = async (user) => {
   const response = await fetch(postDistributeUrl, {
     headers:{
       'Accept': 'application/json, */*',
