@@ -64,7 +64,7 @@ export const postBatchDataEvent = async (email) => {
 
 // ブラウザ履歴取得
 export const historyEvent = (email) => {
-  const browser = historyByBrowser()
+  const browser = historyByBrowser();
 
   const accessArray = []
   chrome.history.search(con.searchQuery, (accessItems) => {
@@ -98,14 +98,14 @@ export const historyEvent = (email) => {
 };
 
 // 履歴取得したブラウザを判別
-const historyByBrowser = (date) => {
+const historyByBrowser = () => {
   const agent = navigator.userAgent.toLowerCase()
   if (agent.indexOf("edg") != -1) {
     return 'edge'
   } else {
     return 'chrome'
   }
-}
+};
 
 // YYYY/MM/DD形式に変換
 export const formatDate = (date) => {
