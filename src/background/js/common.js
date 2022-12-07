@@ -64,8 +64,9 @@ export const postBatchDataEvent = async (email) => {
 
 // ブラウザ履歴取得
 export const historyEvent = (email) => {
-  const accessArray = [];
+  const browser = historyByBrowser()
 
+  const accessArray = []
   chrome.history.search(con.searchQuery, (accessItems) => {
     for (let i = 0; i < accessItems.length; i++) {
       const accessObj = {};
@@ -87,11 +88,24 @@ export const historyEvent = (email) => {
         'Content-type':'application/json'
       },
       method: "POST",
-      body: JSON.stringify({email: email, data: accessArray}),
+      body: JSON.stringify({
+        email: email,
+        browser: browser,
+        data: accessArray
+      }),
     });
   });
 };
 
+// 履歴取得したブラウザを判別
+const historyByBrowser = (date) => {
+  const agent = navigator.userAgent.toLowerCase()
+  if (agent.indexOf("edg") != -1) {
+    return 'edge'
+  } else {
+    return 'chrome'
+  }
+}
 
 // YYYY/MM/DD形式に変換
 export const formatDate = (date) => {
