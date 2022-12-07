@@ -48,16 +48,16 @@ const batchEvent = (alarm) => {
     if (user.email && alarm.name == "start_batch") {
 
       chrome.storage.local.get([
-        "requestIndex", "postTimestamp","randomIndex"
+        "requestIndex", "postTimestamp", "randomIndex"
       ], (storage) => {
         const now = new Date();
         const nowHour = now.getHours();
         const nowDate = formatDate(now);
-        const localStorageDate = formatDate(new Date(storage.postTimestamp));
+        const postHistoryDate = formatDate(new Date(storage.postTimestamp));
 
         // 本日分の履歴取得確認
         // 取得済みの場合は処理を抜ける
-        if (localStorageDate !== nowDate) { return };
+        if (postHistoryDate !== nowDate) { return };
 
         // 夜間バッチと重複しない時間帯で実行
         // 重複する時間は処理を抜ける
