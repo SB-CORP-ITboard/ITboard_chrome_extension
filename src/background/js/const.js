@@ -16,7 +16,7 @@ const SearchQuery = {
 
 // 業務時間内の範囲
 const BeginHistoryEventTime = 9;
-const EndHistoryEventTime = 18;
+const EndHistoryEventTime = 17;
 
 // ユーザリクエスト順序ができない場合のランダム値
 const randomHour = 8;
