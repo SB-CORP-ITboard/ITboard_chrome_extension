@@ -74,7 +74,7 @@ const batchEvent = (alarm) => {
 
         // 各ユーザー割り振られた時間で実行
         const time = requestTimeData(storage.requestIndex, now);
-        if (time.nowHour === time.requestHours && time.nowMinitue == time.requestMinutes) {
+        if (time.nowHours === time.requestHours && time.nowMinitue == time.requestMinutes) {
           historyEvent(user.email);
         }
       });
