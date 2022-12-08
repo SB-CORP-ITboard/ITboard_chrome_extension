@@ -62,7 +62,7 @@ const batchEvent = (alarm) => {
         // 夜間バッチと重複しない時間帯で実行
         // 重複する時間は処理を抜ける
         if (
-          !(con.beginHistoryEventTime < nowHour && nowHour < con.endHistoryEventTime)
+          !(con.beginHistoryEventTime <= nowHour && nowHour <= con.endHistoryEventTime)
         ) { return };
 
         // ユーザーのリクエスト順序が割り振られていない場合
