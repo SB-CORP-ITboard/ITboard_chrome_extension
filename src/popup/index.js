@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
       addPopupByBrowser(el)
     } else if (await existsInUserMaster(user)) {
       el.innerText = `ユーザマスタに${user.email}が存在しません。\n 管理者に問い合わせてください。`
-      el.style.width = '370px'
+      el.style.width = '340px'
     } else {
       el.innerText = '正常に動作しています。'
       el.style.width = '140px'
@@ -22,10 +22,10 @@ const addPopupByBrowser = (el) => {
   const agent = window.navigator.userAgent.toLowerCase()
 
   if (agent.indexOf("edg") != -1) {
-    el.innerText = 'Microsoft アカウントでサインインしてください。'
-    el.style.width = '280px'
+    el.innerText = 'Office365アカウントでサインインし、同期を有効にしてください。'
+    el.style.width = '220px'
   } else {
-    el.innerText = 'Google アカウントでログインしてください。'
+    el.innerText = 'Google Workspaceアカウントでログインし、同期を有効にしてください。'
     el.style.width = '260px'
   }
 }
