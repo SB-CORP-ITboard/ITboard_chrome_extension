@@ -75,7 +75,7 @@ export const historyEvent = (email) => {
       accessObj["url"] = accessItems[i].url.replace(/\?.*$/, "");
       accessObj["title"] = accessItems[i].title;
       accessObj["accessCount"] = accessItems[i].visitCount;
-      accessObj["lastAccessDate"] = accessItems[i].lastVisitTime;
+      accessObj["lastAccessDate"] = new Date(accessItems[i].lastVisitTime);
 
       const accessData = accessObj;
       accessArray.push(accessData);

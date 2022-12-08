@@ -48,21 +48,21 @@ const batchEvent = (alarm) => {
     if (user.email && alarm.name == "start_batch") {
 
       chrome.storage.local.get([
-        "requestIndex", "postTimestamp","randomIndex"
+        "requestIndex", "postTimestamp", "randomIndex"
       ], (storage) => {
         const now = new Date();
         const nowHour = now.getHours();
         const nowDate = formatDate(now);
-        const localStorageDate = formatDate(new Date(storage.postTimestamp));
+        const postHistoryDate = formatDate(new Date(storage.postTimestamp));
 
         // 本日分の履歴取得確認
         // 取得済みの場合は処理を抜ける
-        if (localStorageDate !== nowDate) { return };
+        if (postHistoryDate === nowDate) { return };
 
         // 夜間バッチと重複しない時間帯で実行
         // 重複する時間は処理を抜ける
         if (
-          !(con.beginHistoryEventTime < nowHour && nowHour < con.endHistoryEventTime)
+          !(con.beginHistoryEventTime <= nowHour && nowHour <= con.endHistoryEventTime)
         ) { return };
 
         // ユーザーのリクエスト順序が割り振られていない場合
@@ -74,7 +74,7 @@ const batchEvent = (alarm) => {
 
         // 各ユーザー割り振られた時間で実行
         const time = requestTimeData(storage.requestIndex, now);
-        if (time.nowHour === time.requestHours && time.nowMinitue == time.requestMinutes) {
+        if (time.nowHours === time.requestHours && time.nowMinitue == time.requestMinutes) {
           historyEvent(user.email);
         }
       });
