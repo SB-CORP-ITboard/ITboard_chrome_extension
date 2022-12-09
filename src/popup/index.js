@@ -32,16 +32,17 @@ const addPopupByBrowser = (el) => {
 
 // ユーザーマスタの確認
 const existsInUserMaster = async (user) => {
-  const response = await fetch(postDistributeUrl, {
-    headers:{
-      'Accept': 'application/json, */*',
-      'Content-type':'application/json'
-    },
-    method: "POST",
-    body: JSON.stringify({ email: user.email }),
-  });
-
-  return !response.ok
+  try {
+    const response = await fetch(postDistributeUrl, {
+      headers:{
+        'Accept': 'application/json, */*',
+        'Content-type':'application/json'
+      },
+      method: "POST",
+      body: JSON.stringify({ email: user.email }),
+    })
+    return !response.ok
+  } catch(e) { console.log(`${e} from existsInUserMaster `) }
 }
 
 // ローカル確認用
