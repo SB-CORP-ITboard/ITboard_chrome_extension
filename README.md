@@ -51,8 +51,11 @@ terser -c -m -o src/background/js/common.js -- src/background/js/common.js && te
 
 ### 以下の順序でリリース(zipファイル化)
 1. manifest.jsonの 「"http://localhost:3000/","https://stg-01.itboard.jp/"」を削除
-2. リクエスト先を本番用に変更
+2. manifest.jsonの versionを更新
+  └ 例: "0.0.1" → "0.0.2"
+  └ manifest_versionではないです
+3. リクエスト先を本番用に変更
   └ background/js/const.jsの[PostDistributeUrl, PostShadowItUrl]
   └ popup/index.jsの「postDistributeUrl」
-3. 難読化コマンドを実行
-4. ITboard_chrome_extensionを圧縮(zip化)
+4. 難読化コマンドを実行
+5. ITboard_chrome_extensionを圧縮(zip化)
