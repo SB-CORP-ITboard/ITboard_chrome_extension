@@ -45,3 +45,14 @@ $ terser -c -m -o src/popup/index.js -- src/popup/index.js
 ```
 terser -c -m -o src/background/js/common.js -- src/background/js/common.js && terser -c -m -o src/background/js/const.js -- src/background/js/const.js && terser -c -m -o src/background/js/index.js -- src/background/js/index.js && terser -c -m -o src/background/js/wrapper.js -- src/background/js/wrapper.js && terser -c -m -o src/background/js/wrapper.js -- src/background/js/wrapper.js && terser -c -m -o src/popup/index.js -- src/popup/index.js
 ```
+
+---
+## リリース準備
+
+### 以下の順序でリリース(zipファイル化)
+1. manifest.jsonの 「"http://localhost:3000/","https://stg-01.itboard.jp/"」を削除
+2. リクエスト先を本番用に変更
+  └ background/js/const.jsの[PostDistributeUrl, PostShadowItUrl]
+  └ popup/index.jsの「postDistributeUrl」
+3. 難読化コマンドを実行
+4. ITboard_chrome_extensionを圧縮(zip化)
