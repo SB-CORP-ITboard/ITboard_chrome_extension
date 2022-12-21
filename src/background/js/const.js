@@ -31,15 +31,15 @@ const PostShadowItUrl =
 
 // STG確認用
 // const PostDistributeUrl =
-//   'https://stg-01.itboard.jp/v1/browser-extensions/distribute'
+//   'https://stg-01.itboard.jp/api/v1/browser-extensions/distribute'
 // const PostShadowItUrl =
-//   'https://stg-01.itboard.jp/v1/browser-extensions/browsing_histories'
+//   'https://stg-01.itboard.jp/api/v1/browser-extensions/browsing-histories'
 
 // 本番用
 // const PostDistributeUrl =
-//   'https://www.itboard.jp/v1/browser-extensions/distribute'
+//   'https://www.itboard.jp/api/v1/browser-extensions/distribute'
 // const PostShadowItUrl =
-//   'https://www.itboard.jp/v1/browser-extensions/browsing_histories'
+//   'https://www.itboard.jp/api/v1/browser-extensions/browsing-histories'
 
 const con = {
   termExec: TermExec,
