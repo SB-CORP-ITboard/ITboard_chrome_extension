@@ -51,8 +51,8 @@ const postDistributeUrl =
 
 // STG確認用
 // const postDistributeUrl =
-//   'https://stg-01.itboard.jp/v1/browser-extensions/distribute'
+//   'https://stg-01.itboard.jp/api/v1/browser-extensions/distribute'
 
 // 本番用
 // const postDistributeUrl =
-//   'https://www.itboard.jp/v1/browser-extensions/distribute'
+//   'https://www.itboard.jp/api/v1/browser-extensions/distribute'
