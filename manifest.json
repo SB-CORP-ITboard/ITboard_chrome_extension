@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ITboard",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "シャドーITを検知します。対応ブラウザ: Google Chrome, Chromiumベース Microsoft Edge",
   "author": "jimpei",
   "permissions": [
