@@ -22,7 +22,7 @@ const addPopupByBrowser = (el) => {
   const agent = window.navigator.userAgent.toLowerCase()
 
   if (agent.indexOf("edg") != -1) {
-    el.innerText = 'Office365アカウントでサインインし、同期を有効にしてください。'
+    el.innerText = 'Microsoftアカウントでサインインし、同期を有効にしてください。'
     el.style.width = '220px'
   } else {
     el.innerText = 'Google Workspaceアカウントでログインし、同期を有効にしてください。'
