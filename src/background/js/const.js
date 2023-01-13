@@ -3,8 +3,8 @@ const TermExec = 1;
 
 // 履歴取得範囲(過去60日間)
 const microsecondsPerDay = 1000 * 60 * 60 * 24; // １日
-const date = 60;
-const searchStartTime = new Date().getTime() - microsecondsPerDay * date;
+const DateRange = 1;
+const searchStartTime = new Date().getTime() - microsecondsPerDay * DateRange;
 const searchCount = 1000000
 
 // 履歴取得条件
@@ -43,6 +43,7 @@ const PostShadowItUrl =
 
 const con = {
   termExec: TermExec,
+  dateRage: DateRange,
   searchQuery: SearchQuery,
   beginHistoryEventTime: BeginHistoryEventTime,
   endHistoryEventTime: EndHistoryEventTime,
