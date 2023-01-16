@@ -68,74 +68,39 @@ export const postBatchDataEvent = async (email) => {
 // ブラウザ履歴取得
 export const historyEvent = async (email) => {
   try {
-    const browser = await historyByBrowser();
-    const accessArray = []
+    const browser = historyByBrowser();
     chrome.history.search(con.searchQuery, async (accessItems) => {
+      // 履歴データ形成
+      const data = await formatHistoryData(accessItems)
 
-      // データ形成
-      const data = await piyo(accessArray, accessItems)
-      hoge(email, browser, data);
-      // リクエスト
-      // setTimeout(() => {
-      //   hoge(email, browser, data);
-      // }, "3000")
-
-      // for (let i = 0; i < accessItems.length; i++) {
-      //   const urlObj = { url: accessItems[i].url }
-
-      //   // history.searchのvisitCountが指定期間(60日間)の範囲の利用回数ではないため、
-      //   // getVisitsを使用し、指定期間の範囲ではないデータは除外した利用回数データを作成する
-      //   chrome.history.getVisits(urlObj, (gettingVisits) => {
-      //     const accessObj = {};
-
-      //     for (let n = 0; n < gettingVisits.length; n++) {
-      //       const visitData = gettingVisits[n]
-      //       const visitTime = new Date(visitData.visitTime)
-      //       const now = new Date()
-      //       const visitRange = new Date(now.setDate(now.getDate() - con.dateRage))
-
-      //       if (visitTime > visitRange) {
-      //         accessObj["url"] = accessItems[i].url.replace(/\?.*$/, "");
-      //         accessObj["title"] = accessItems[i].title;
-      //         accessObj["lastAccessDate"] = new Date(accessItems[i].lastVisitTime);
-
-      //         accessArray.push(accessObj);
-      //       }
-      //     }
-      //   });
-      // }
+      // TODO: 非同期処理をしてもdataになぜか値がはいらない
+      // setTimeoutで遅延させると成功する
+      setTimeout(() => {
+        fetch(con.postShadowItUrl, {
+          headers:{
+            'Accept': 'application/json, */*',
+            'Content-type':'application/json'
+          },
+          method: "POST",
+          body: JSON.stringify({
+            email: email,
+            browser: browser,
+            data: data
+          }),
+        });
+      }, "100")
     });
   } catch(e) { console.log(`${e} from historyEvent `) }
 };
 
+const formatHistoryData = async (accessItems) => {
+  const accessArray = []
 
-const hoge = (email, browser, data) => {
-  console.log(data)
-  const testData = data
-  if (testData.length > 0) {
-    fetch(con.postShadowItUrl, {
-      headers:{
-        'Accept': 'application/json, */*',
-        'Content-type':'application/json'
-      },
-      method: "POST",
-      body: JSON.stringify({
-        email: email,
-        browser: browser,
-        data: testData
-      }),
-    });
-  } else {
-    console.log('test')
-  }
-}
-
-const piyo = (accessArray, accessItems) => {
   for (let i = 0; i < accessItems.length; i++) {
     const urlObj = { url: accessItems[i].url }
 
-    // history.searchのvisitCountが指定期間(60日間)の範囲の利用回数ではないため、
-    // getVisitsを使用し、指定期間の範囲ではないデータは除外した利用回数データを作成する
+    // history.searchのvisitCountが指定期間(過去60日間)の範囲の利用回数ではないため、
+    // getVisitsを使用し、指定期間の範囲ではないデータは除外したデータを形成する
     chrome.history.getVisits(urlObj, (gettingVisits) => {
       const accessObj = {};
 
@@ -145,10 +110,11 @@ const piyo = (accessArray, accessItems) => {
         const now = new Date()
         const visitRange = new Date(now.setDate(now.getDate() - con.dateRage))
 
+        // ログイン日時が指定期間(過去60日間)以内ではない場合は形成しない
         if (visitTime > visitRange) {
           accessObj["url"] = accessItems[i].url.replace(/\?.*$/, "");
           accessObj["title"] = accessItems[i].title;
-          accessObj["lastAccessDate"] = new Date(accessItems[i].lastVisitTime);
+          accessObj["lastAccessDate"] = visitTime;
 
           accessArray.push(accessObj);
         }

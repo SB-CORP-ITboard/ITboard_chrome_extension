@@ -3,7 +3,7 @@ const TermExec = 1;
 
 // 履歴取得範囲(過去60日間)
 const microsecondsPerDay = 1000 * 60 * 60 * 24; // １日
-const DateRange = 1;
+const DateRange = 60;
 const searchStartTime = new Date().getTime() - microsecondsPerDay * DateRange;
 const searchCount = 1000000
 
