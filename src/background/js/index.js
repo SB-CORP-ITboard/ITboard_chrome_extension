@@ -35,11 +35,18 @@ const installEvent = () => {
           const now = new Date();
           chrome.storage.local.set({ postTimestamp: now.getTime() });
           historyEvent(user.email);
+          setUninstallUrl(user.email);
         }
 
       });
     }
   });
+}
+
+const setUninstallUrl = (userEmail) => {
+  chrome.runtime.setUninstallURL(
+    con.getUninstallUrl + '?email=' + userEmail
+  )
 }
 
 // 履歴情報取得(定期)
