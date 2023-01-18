@@ -29,13 +29,13 @@ export const backgroundEvent = () => {
 const installEvent = () => {
   chrome.identity.getProfileUserInfo((user) => {
     if (user.email) {
+      setUninstallUrl(user.email);
       postBatchDataEvent(user.email).then(value => {
 
         if (value !== "undefined") {
           const now = new Date();
           chrome.storage.local.set({ postTimestamp: now.getTime() });
           historyEvent(user.email);
-          setUninstallUrl(user.email);
         }
 
       });
@@ -43,15 +43,13 @@ const installEvent = () => {
   });
 }
 
-const setUninstallUrl = (userEmail) => {
-  chrome.runtime.setUninstallURL(
-    con.getUninstallUrl + '?email=' + userEmail
-  )
-}
-
 // 履歴情報取得(定期)
 const batchEvent = (alarm) => {
   chrome.identity.getProfileUserInfo((user) => {
+    if (user.email) {
+      setUninstallUrl(user.email);
+    }
+
     if (user.email && alarm.name == "start_batch") {
 
       chrome.storage.local.get([
@@ -108,4 +106,10 @@ const getRequestIndex = (user, storage, now) => {
       });
     }
   }
+};
+
+const setUninstallUrl = (userEmail) => {
+  chrome.runtime.setUninstallURL(
+    con.getUninstallUrl + '?email=' + userEmail
+  )
 };
