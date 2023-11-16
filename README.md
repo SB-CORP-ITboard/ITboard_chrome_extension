@@ -17,6 +17,18 @@ Chrome 閲覧履歴取得のブラウザ拡張機能
 4. デベロッパーモードを ON
 5. パッケージ化されていない拡張機能を読み込むをクリック
 6. ITboard_chrome_extension ディレクトリを選択
+7. Chromeの右上に拡張機能のアイコンが存在するので、クリックしてITboaedを固定する
+  * https://www.mochiya.ad.jp/blog/system-dev/detail/chrome_extensions_useful_of_2023#%E6%8B%A1%E5%BC%B5%E6%A9%9F%E8%83%BD%E3%81%AE%E7%AE%A1%E7%90%86
+8. 固定したITboardのアイコンをクリックして動作を確認、エラーが出ていたら対応
+  * 以下例
+  1. ユーザマスタにhogehoge@gmail.comが存在しません。
+  * 対応方法
+    * hogehoge@gmail.comのユーザーが存在するサービスをユーザーマスタに設定する
+9. jobディレクトリにてシャドーITのバッチを実行
+  * 実行コマンド
+    * $ docker compose run job rails daily_batch:shadow_it_detector
+10. ITboardのシャドーIT一覧を確認する
+
 ### Microsoft Edge(Chromiumベースのみ対応)
 1. Microsoft Edge の設定をクリック(ブラウザ右上)
 2. 拡張機能をクリック
