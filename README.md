@@ -24,6 +24,13 @@ Chrome 閲覧履歴取得のブラウザ拡張機能
 4. 開発者モードを ON
 5. 展開して読み込みでITboard_chrome_extension ディレクトリを選択
 
+## STG環境確認手順
+1. ITboard_chrome_extensionソースコードの[STG確認用]の定数をすべてアンコメント
+2. ITboard_chrome_extensionソースコードの[ローカル確認用]の定数をすべてコメントアウト
+  * 手順1,2の対象ファイル
+    * src/background/js/const.js
+    * src/popup/index.js
+3. ローカルの手順を行う
 ---
 ## 難読化
 ### パッケージのインストール
