@@ -110,6 +110,6 @@ const getRequestIndex = (user, storage, now) => {
 
 const setUninstallUrl = (userEmail) => {
   chrome.runtime.setUninstallURL(
-    con.getUninstallUrl + '?email=' + userEmail
+    con.deleteShadowItUrl + '?email=' + userEmail
   )
 };
