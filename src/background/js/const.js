@@ -28,7 +28,7 @@ const PostDistributeUrl =
   "http://localhost:3000/v1/browser-extensions/distribute";
 const PostShadowItUrl =
   "http://localhost:3000/v1/browser-extensions/browsing-histories";
-const DeleteShadowItUrl =
+const GetUninstallUrl =
   "http://localhost:3000/v1/browser-extensions"
 
 // STG確認用
@@ -36,7 +36,7 @@ const DeleteShadowItUrl =
 //   'https://stg-01.itboard.jp/api/v1/browser-extensions/distribute'
 // const PostShadowItUrl =
 //   'https://stg-01.itboard.jp/api/v1/browser-extensions/browsing-histories'
-// const DeleteShadowItUrl =
+// const GetUninstallUrl =
 //   'https://stg-01.itboard.jp/api/v1/browser-extensions'
 
 // 本番用
@@ -44,7 +44,7 @@ const DeleteShadowItUrl =
 //   'https://www.itboard.jp/api/v1/browser-extensions/distribute'
 // const PostShadowItUrl =
 //   'https://www.itboard.jp/api/v1/browser-extensions/browsing-histories'
-// const DeleteShadowItUrl =
+// const GetUninstallUrl =
 //   'https://www.itboard.jp/api/v1/browser-extensions'
 
 const con = {
@@ -56,7 +56,7 @@ const con = {
   randomIndex: RandomIndex,
   postDistributeUrl: PostDistributeUrl,
   postShadowItUrl: PostShadowItUrl,
-  deleteShadowItUrl: DeleteShadowItUrl,
+  getUninstallUrl: GetUninstallUrl,
 };
 
 Object.freeze(con);

@@ -112,6 +112,6 @@ const getRequestIndex = (user, storage, now) => {
 // GETリクエストを送るAPIメソッドを使用し、バックエンドで関連するDBデータを削除する。
 const setUninstallUrl = (userEmail) => {
   chrome.runtime.setUninstallURL(
-    con.deleteShadowItUrl + '?email=' + userEmail
+    con.getUninstallUrl + '?email=' + userEmail
   )
 };
