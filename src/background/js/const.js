@@ -29,7 +29,7 @@ const PostDistributeUrl =
 const PostShadowItUrl =
   "http://localhost:3000/v1/browser-extensions/browsing-histories";
 const GetUninstallUrl =
-  "http://localhost:3000/v1/browser-extensions"
+  "http://localhost:3000/v1/browser-extensions/uninstall"
 
 // STG確認用
 // const PostDistributeUrl =
@@ -37,7 +37,7 @@ const GetUninstallUrl =
 // const PostShadowItUrl =
 //   'https://stg-01.itboard.jp/api/v1/browser-extensions/browsing-histories'
 // const GetUninstallUrl =
-//   'https://stg-01.itboard.jp/api/v1/browser-extensions'
+//   'https://stg-01.itboard.jp/api/v1/browser-extensions/uninstall'
 
 // 本番用
 // const PostDistributeUrl =
@@ -45,7 +45,7 @@ const GetUninstallUrl =
 // const PostShadowItUrl =
 //   'https://www.itboard.jp/api/v1/browser-extensions/browsing-histories'
 // const GetUninstallUrl =
-//   'https://www.itboard.jp/api/v1/browser-extensions'
+//   'https://www.itboard.jp/api/v1/browser-extensions/uninstall'
 
 const con = {
   termExec: TermExec,
