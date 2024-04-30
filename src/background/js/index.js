@@ -134,6 +134,7 @@ const getRequestIndex = (user, storage, now) => {
   }
 };
 
+// 拡張機能アンインストール時、GETリクエストでシャドーIT拡張機能に関連するデータを削除する。
 const setUninstallUrl = (userEmail) => {
   chrome.runtime.setUninstallURL(
     con.getUninstallUrl + '?email=' + userEmail
