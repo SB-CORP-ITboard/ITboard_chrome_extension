@@ -21,12 +21,17 @@ Chrome 閲覧履歴取得のブラウザ拡張機能
   * https://www.mochiya.ad.jp/blog/system-dev/detail/chrome_extensions_useful_of_2023#%E6%8B%A1%E5%BC%B5%E6%A9%9F%E8%83%BD%E3%81%AE%E7%AE%A1%E7%90%86
 8. 固定したITboardのアイコンをクリックして動作を確認、エラーが出ていたら対応
   * 以下例
-  1. ユーザマスタにhogehoge@gmail.comが存在しません。
-  * 対応方法
-    * hogehoge@gmail.comのユーザーが存在するサービスをユーザーマスタに設定する
+    1. ユーザマスタにhoge@gmail.comが存在しません。
+    * 対応方法
+      * hoge@gmail.comのユーザーが存在するサービスをユーザーマスタに設定する
+    2. Google Workspaceアカウントでログインし、同期を有効にしてください。
+    * 対応方法
+      * https://support.google.com/chrome/answer/185277?hl=ja&co=GENIE.Platform%3DDesktop#zippy=%2C%E3%83%AD%E3%82%B0%E3%82%A4%E3%83%B3%E3%81%97%E3%81%A6%E5%90%8C%E6%9C%9F%E3%82%92%E3%82%AA%E3%83%B3%E3%81%AB%E3%81%99%E3%82%8B
 9. jobディレクトリにてシャドーITのバッチを実行
   * 実行コマンド
-    * $ docker compose run job rails daily_batch:shadow_it_detector
+```
+$ docker compose run job rails daily_batch:shadow_it_detector
+```
 10. ITboardのシャドーIT一覧を確認する
 
 ### Microsoft Edge(Chromiumベースのみ対応)
@@ -44,7 +49,7 @@ Chrome 閲覧履歴取得のブラウザ拡張機能
     * src/popup/index.js
 3. ローカルの手順を行う
 ---
-## 難読化
+## 難読化(リリース時のみ実行)
 ### パッケージのインストール
 ```
 npm install terser -g
@@ -71,7 +76,7 @@ terser -c -m -o src/background/js/common.js -- src/background/js/common.js && te
 ### 以下の順序でリリース(zipファイル化)
 1. manifest.jsonの versionを更新
   * 例: "0.0.1" → "0.0.2"
-  * manifest_versionではないです
+  * ※ 上記 manifest_versionではないです
 2. versionを更新したのでgithubにあげる
 3. manifest.jsonの 「"http://localhost:3000/","https://stg-01.itboard.jp/"」を削除
 4. リクエスト先を本番用に変更
