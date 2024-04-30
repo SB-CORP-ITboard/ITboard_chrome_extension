@@ -15,14 +15,11 @@ export const postBatchDataEvent = async (email) => {
     if (response.ok) {
       const data = await response.json();
 
-      // 分割(distributeHour)
-      //  1の場合: calcDistribute == 60分
-      //  2の場合: calcDistribute == 120分
-      const calcDistribute = data.distributeHour * 60;
+      const calcDistribute = (data.endHistoryEventTime - data.beginHistoryEventTime) * 60;
       let requestIndex = data.requestIndex;
 
-      // ９時に履歴取得開始
       // calcDistributeの値に応じてユーザーのリクエスト時間を配分
+      //
       // case1
       //   requestIndex: 10, calcDistribute: 60
       //    └ 9:10にリクエスト
@@ -39,8 +36,13 @@ export const postBatchDataEvent = async (email) => {
       // requestIndexがcalcDistributeより少ない場合 (case1とcase3)
       // そのままrequestIndexを保存
       let num = requestIndex / calcDistribute;
+
       if (num < 1) {
-        chrome.storage.local.set({ requestIndex: requestIndex });
+        chrome.storage.local.set({
+          requestIndex: requestIndex,
+          beginHistoryEventTime: data.beginHistoryEventTime,
+          endHistoryEventTime: data.endHistoryEventTime
+        });
         return requestIndex;
       }
 
@@ -57,7 +59,11 @@ export const postBatchDataEvent = async (email) => {
         requestIndex -= calcDistribute;
         num = requestIndex / calcDistribute;
         if (num < 1) {
-          chrome.storage.local.set({ requestIndex: requestIndex });
+          chrome.storage.local.set({
+            requestIndex: requestIndex,
+            beginHistoryEventTime: data.beginHistoryEventTime,
+            endHistoryEventTime: data.endHistoryEventTime
+          });
           return requestIndex;
         }
       }
@@ -142,12 +148,16 @@ export const formatDate = (date) => {
   return null;
 };
 
-export const requestTimeData = (requestIndex, now) => {
+export const requestTimeData = (
+  requestIndex,
+  beginHistoryEventTime,
+  now
+) => {
   const requestTime = new Date();
   const nowHours = now.getHours();
   const nowMinitue = now.getMinutes();
   const setRequestTime = requestTime.setHours(
-    con.beginHistoryEventTime,
+    beginHistoryEventTime,
     requestIndex,
     0
   );
