@@ -140,7 +140,6 @@ const startUpEvent = () => {
     if (postHistoryDate !== nowDate) {
       chrome.identity.getProfileUserInfo((user) => {
         if (user.email) {
-          const now = new Date();
           chrome.storage.local.set({ postTimestamp: now.getTime() });
           historyEvent(user.email);
         }
