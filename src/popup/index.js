@@ -61,12 +61,10 @@ const existsInUserMaster = async (user) => {
 
 const popupEvent = () => {
   chrome.storage.local.get(["postTimestamp"], (storage) => {
-    // 履歴取得の時間帯がローカルストレージに存在しない場合は取得する
     const now = new Date();
     const nowDate = popupFormatDate(now);
     const postHistoryDate = popupFormatDate(new Date(storage.postTimestamp));
 
-    console.log('nowDate', nowDate)
     // 既に履歴を送信している場合は処理を行わない
     if (postHistoryDate !== nowDate) {
       chrome.identity.getProfileUserInfo((user) => {
