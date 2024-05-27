@@ -94,7 +94,7 @@ export const historyEvent = async (email) => {
             data: data
           }),
         });
-      }, "100")
+      }, "5000")
     });
   } catch(e) { console.log(`${e} from historyEvent `) }
 };
