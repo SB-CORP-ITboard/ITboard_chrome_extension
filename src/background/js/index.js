@@ -7,17 +7,22 @@ import {
 import { con } from "./const.js";
 
 // 各タイミングで処理を行う
-// インストール時
-// 定期間隔
 export const backgroundEvent = () => {
+  // インストール時
   chrome.runtime.onInstalled.addListener(() => {
     installEvent();
   });
 
+  // 定期間隔
   chrome.alarms.create("start_batch", { periodInMinutes: con.termExec });
   chrome.alarms.onAlarm.addListener((alarm) => {
     batchEvent(alarm);
   });
+
+  // ブラウザ起動時
+  chrome.runtime.onStartup.addListener(() => {
+    startUpEvent();
+  })
 
   // リクエスト順序が取得できない場合の処置
   // ランダムなリクエストタイミングを保存
@@ -106,6 +111,42 @@ const batchEvent = (alarm) => {
     }
   });
 };
+
+// 履歴情報取得(ブラウザ起動時)
+const startUpEvent = () => {
+  chrome.storage.local.get([
+    "postTimestamp", "beginHistoryEventTime", "endHistoryEventTime"
+  ], (storage) => {
+    // 履歴取得の時間帯がローカルストレージに存在しない場合は取得する
+    if (
+      typeof storage.beginHistoryEventTime === "undefined" ||
+      typeof storage.endHistoryEventTime === "undefined"
+    ) {
+      postBatchDataEvent(user.email);
+    }
+
+    const now = new Date();
+    const nowHour = now.getHours();
+
+    // 履歴取得の時間帯のみ実行する。それ以外は処理を抜ける
+    if (
+      !(storage.beginHistoryEventTime <= nowHour && nowHour <= storage.endHistoryEventTime)
+    ) { return };
+
+    // 本日分の履歴取得確認
+    // 既に履歴を送信している場合は処理を行わない
+    const nowDate = formatDate(now);
+    const postHistoryDate = formatDate(new Date(storage.postTimestamp));
+    if (postHistoryDate !== nowDate) {
+      chrome.identity.getProfileUserInfo((user) => {
+        if (user.email) {
+          chrome.storage.local.set({ postTimestamp: now.getTime() });
+          historyEvent(user.email);
+        }
+      });
+    }
+  })
+}
 
 // ユーザーのリクエスト順序が割り振られていない場合
 //  └ リクエストの順序を取得する
