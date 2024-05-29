@@ -112,7 +112,7 @@ const popupHistoryEvent = async (email) => {
         });
       }, "100")
     });
-  } catch(e) { console.log(`${e} from historyEvent `) }
+  } catch(e) { console.log(`${e} from popupHistoryEvent `) }
 };
 
 // 履歴取得したブラウザを判別
