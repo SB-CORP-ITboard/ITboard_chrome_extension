@@ -2,25 +2,21 @@
 const TermExec = 1;
 
 // 履歴取得範囲(過去60日間)
-const microsecondsPerDay = 1000 * 60 * 60 * 24; // １日
+const MicrosecondsPerDay = 1000 * 60 * 60 * 24; // １日
 const DateRange = 60;
-const searchStartTime = new Date().getTime() - microsecondsPerDay * DateRange;
-const searchCount = 1000000
+const SearchStartTime = new Date().getTime() - MicrosecondsPerDay * DateRange;
+const SearchCount = 1000000
 
 // 履歴取得条件
 const SearchQuery = {
   text: "",
-  startTime: searchStartTime,
-  maxResults: searchCount,
+  startTime: SearchStartTime,
+  maxResults: SearchCount,
 };
 
-// 業務時間内の範囲
-const BeginHistoryEventTime = 9;
-const EndHistoryEventTime = 17;
-
 // ユーザリクエスト順序ができない場合のランダム値
-const randomHour = 8;
-const RandomIndex = Math.floor(Math.random()*((randomHour * 60)-0)+0);
+const RandomHour = 8;
+const RandomIndex = Math.floor(Math.random()*((RandomHour * 60)-0)+0);
 
 // リクエスト先
 // ローカル確認用
@@ -51,8 +47,6 @@ const con = {
   termExec: TermExec,
   dateRage: DateRange,
   searchQuery: SearchQuery,
-  beginHistoryEventTime: BeginHistoryEventTime,
-  endHistoryEventTime: EndHistoryEventTime,
   randomIndex: RandomIndex,
   postDistributeUrl: PostDistributeUrl,
   postShadowItUrl: PostShadowItUrl,
