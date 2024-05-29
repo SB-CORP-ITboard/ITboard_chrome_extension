@@ -81,6 +81,7 @@ export const historyEvent = async (email) => {
 
       // TODO: 非同期処理をしてもdataになぜか値がはいらない
       // setTimeoutで遅延させると成功する
+      // ブラウザ起動時にsetTimeoutの秒数が短いとデータ形成ができずにエラーになるため5秒間とする
       setTimeout(() => {
         fetch(con.postShadowItUrl, {
           headers:{

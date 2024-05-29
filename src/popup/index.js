@@ -95,6 +95,8 @@ const popupHistoryEvent = async (email) => {
 
       // TODO: 非同期処理をしてもdataになぜか値がはいらない
       // setTimeoutで遅延させると成功する
+      // ポップアップ: 0.1秒間
+      // ブラウザ起動時: 5秒間
       setTimeout(() => {
         fetch(postShadowItUrl, {
           headers:{
