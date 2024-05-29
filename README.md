@@ -78,9 +78,9 @@ terser -c -m -o src/background/js/common.js -- src/background/js/common.js && te
   * 例: "0.0.1" → "0.0.2"
   * ※ 上記 manifest_versionではないです
 2. versionを更新したのでgithubにあげる
-3. manifest.jsonの 「"http://localhost:3000/","https://stg-01.itboard.jp/"」を削除
+3. manifest.json、host_permissions内の 「"http://localhost:3000/","https://stg-01.itboard.jp/"」を削除
 4. リクエスト先を本番用に変更
   * background/js/const.jsの[PostDistributeUrl, PostShadowItUrl]
-  * popup/index.jsの「postDistributeUrl」
+  * popup/index.jsの「postDistributeUrl, postShadowItUrl」
 5. 難読化コマンドを実行
 6. ITboard_chrome_extensionを圧縮(zip化)
