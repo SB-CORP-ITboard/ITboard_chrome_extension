@@ -168,10 +168,10 @@ const popupFormatHistoryData = async (accessItems) => {
 }
 
 // ローカル確認用
-// const checkMasterUserUrl =
-//   "http://localhost:3000/v1/browser-extensions/check-master-user";
-// const postShadowItUrl =
-//   "http://localhost:3000/v1/browser-extensions/browsing-histories";
+const checkMasterUserUrl =
+  "http://localhost:3000/v1/browser-extensions/check-master-user";
+const postShadowItUrl =
+  "http://localhost:3000/v1/browser-extensions/browsing-histories";
 
 // STG確認用
 // const checkMasterUserUrl =
@@ -180,7 +180,7 @@ const popupFormatHistoryData = async (accessItems) => {
 //   'https://stg-01.itboard.jp/api/v1/browser-extensions/browsing-histories'
 
 // 本番用
-const checkMasterUserUrl =
-  "http://localhost:3000/v1/browser-extensions/check-master-user";
-const postShadowItUrl =
-  'https://www.itboard.jp/api/v1/browser-extensions/browsing-histories'
+// const checkMasterUserUrl =
+//   "http://localhost:3000/v1/browser-extensions/check-master-user";
+// const postShadowItUrl =
+//   'https://www.itboard.jp/api/v1/browser-extensions/browsing-histories'
