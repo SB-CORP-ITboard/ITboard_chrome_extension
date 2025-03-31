@@ -26,8 +26,6 @@
     "default_popup": "src/popup/index.html"
   },
   "host_permissions": [
-    "http://localhost:3000/",
-    "https://stg-01.itboard.jp/",
     "https://www.itboard.jp/"
   ]
 }
