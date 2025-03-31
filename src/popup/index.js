@@ -65,7 +65,6 @@ const checkMasterUser = async (email) => {
 }
 
 const popupEvent = () => {
-  debugger
   chrome.storage.local.get("postTimestamp", (storage) => {
     const now = new Date();
     const nowHour = now.getHours();

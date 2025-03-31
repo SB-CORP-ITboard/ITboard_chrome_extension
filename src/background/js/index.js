@@ -14,13 +14,11 @@ export const backgroundEvent = () => {
   // 定期間隔
   chrome.alarms.create("start_batch", { periodInMinutes: con.termExec });
   chrome.alarms.onAlarm.addListener((alarm) => {
-    debugger
     batchEvent(alarm);
   });
 
   // ブラウザ起動時
   chrome.runtime.onStartup.addListener(() => {
-    debugger
     startUpEvent();
   })
 };
