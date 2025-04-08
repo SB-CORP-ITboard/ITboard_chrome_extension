@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (user.email.length === 0) {
       addPopupByBrowser(el)
-    } else if (await checkMasterUser(user.email)) {
+    } else if (await checkUserMaster(user.email)) {
       el.innerText = `ユーザマスタに${user.email}が存在しません。\n 管理者に問い合わせてください。`
       el.style.width = '340px'
     } else {
@@ -49,16 +49,15 @@ const addPopupByBrowser = (el) => {
 }
 
 // ユーザーマスタの確認
-const checkMasterUser = async (email) => {
+const checkUserMaster = async (email) => {
   try {
-    const url = new URL(checkMasterUserUrl);
-    url.searchParams.append('email', email);
-
-    const response = await fetch(url.href, {
+    const response = await fetch(checkUserMasterUrl, {
       headers:{
         'Accept': 'application/json, */*',
+        'Content-type':'application/json'
       },
-      method: "GET"
+      method: "POST",
+      body: JSON.stringify({ email: email }),
     });
     return !response.ok
   } catch(e) { console.log(`${e} from existsInUserMaster `) }
@@ -168,19 +167,19 @@ const popupFormatHistoryData = async (accessItems) => {
 }
 
 // ローカル確認用
-const checkMasterUserUrl =
-  "http://localhost:3000/v1/browser-extensions/check-master-user";
+const checkUserMasterUrl =
+  "http://localhost:3000/v1/browser-extensions/master";
 const postShadowItUrl =
   "http://localhost:3000/v1/browser-extensions/browsing-histories";
 
 // STG確認用
-// const checkMasterUserUrl =
-//   "http://localhost:3000/v1/browser-extensions/check-master-user";
+// const checkUserMasterUrl =
+//   "http://localhost:3000/v1/browser-extensions/master";
 // const postShadowItUrl =
 //   'https://stg-01.itboard.jp/api/v1/browser-extensions/browsing-histories'
 
 // 本番用
-// const checkMasterUserUrl =
-//   "http://localhost:3000/v1/browser-extensions/check-master-user";
+// const checkUserMasterUrl =
+//   "http://localhost:3000/v1/browser-extensions/master";
 // const postShadowItUrl =
 //   'https://www.itboard.jp/api/v1/browser-extensions/browsing-histories'
