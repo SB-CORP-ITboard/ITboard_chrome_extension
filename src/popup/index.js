@@ -1,7 +1,3 @@
-// 履歴取得可能時間(時)
-const popupBeginHistoryEventTime = 6
-const popupEndHistoryEventTime = 23
-
 // 履歴取得範囲(過去60日間)
 const popupMicrosecondsPerDay = 1000 * 60 * 60 * 24; // １日
 const popupDateRange = 60;
@@ -22,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (user.email.length === 0) {
       addPopupByBrowser(el)
-    } else if (await checkMasterUser(user.email)) {
+    } else if (await existsInUserMaster(user)) {
       el.innerText = `ユーザマスタに${user.email}が存在しません。\n 管理者に問い合わせてください。`
       el.style.width = '340px'
     } else {
@@ -49,34 +45,28 @@ const addPopupByBrowser = (el) => {
 }
 
 // ユーザーマスタの確認
-const checkMasterUser = async (email) => {
+const existsInUserMaster = async (user) => {
   try {
-    const url = new URL(checkMasterUserUrl);
-    url.searchParams.append('email', email);
-
-    const response = await fetch(url.href, {
+    const response = await fetch(postDistributeUrl, {
       headers:{
         'Accept': 'application/json, */*',
+        'Content-type':'application/json'
       },
-      method: "GET"
-    });
+      method: "POST",
+      body: JSON.stringify({ email: user.email }),
+    })
     return !response.ok
   } catch(e) { console.log(`${e} from existsInUserMaster `) }
 }
 
 const popupEvent = () => {
-  chrome.storage.local.get("postTimestamp", (storage) => {
+  chrome.storage.local.get(["postTimestamp"], (storage) => {
     const now = new Date();
-    const nowHour = now.getHours();
     const nowDate = popupFormatDate(now);
     const postHistoryDate = popupFormatDate(new Date(storage.postTimestamp));
 
-    // 本日分の履歴取得確認
     // 既に履歴を送信している場合は処理を行わない
-    if (postHistoryDate == nowDate) { return };
-
-    // 履歴取得の時間帯のみ実行する。それ以外は処理を抜ける
-    if (popupBeginHistoryEventTime <= nowHour && nowHour <= popupEndHistoryEventTime) {
+    if (postHistoryDate !== nowDate) {
       chrome.identity.getProfileUserInfo((user) => {
         if (user.email) {
           chrome.storage.local.set({ postTimestamp: now.getTime() });
@@ -168,19 +158,19 @@ const popupFormatHistoryData = async (accessItems) => {
 }
 
 // ローカル確認用
-// const checkMasterUserUrl =
-//   "http://localhost:3000/v1/browser-extensions/check-master-user";
-// const postShadowItUrl =
-//   "http://localhost:3000/v1/browser-extensions/browsing-histories";
+const postDistributeUrl =
+  "http://localhost:3000/v1/browser-extensions/distribute";
+const postShadowItUrl =
+  "http://localhost:3000/v1/browser-extensions/browsing-histories";
 
 // STG確認用
-// const checkMasterUserUrl =
-//   "http://localhost:3000/v1/browser-extensions/check-master-user";
+// const postDistributeUrl =
+//   'https://stg-01.itboard.jp/api/v1/browser-extensions/distribute'
 // const postShadowItUrl =
 //   'https://stg-01.itboard.jp/api/v1/browser-extensions/browsing-histories'
 
 // 本番用
-const checkMasterUserUrl =
-  "http://localhost:3000/v1/browser-extensions/check-master-user";
-const postShadowItUrl =
-  'https://www.itboard.jp/api/v1/browser-extensions/browsing-histories'
+// const postDistributeUrl =
+//   'https://www.itboard.jp/api/v1/browser-extensions/distribute'
+// const postShadowItUrl =
+//   'https://www.itboard.jp/api/v1/browser-extensions/browsing-histories'
