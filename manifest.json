@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ITboard",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "シャドーITを検知します。対応ブラウザ: Google Chrome, Chromiumベース Microsoft Edge",
   "author": "jimpei",
   "permissions": [
@@ -26,8 +26,6 @@
     "default_popup": "src/popup/index.html"
   },
   "host_permissions": [
-    "http://localhost:3000/",
-    "https://stg-01.itboard.jp/",
     "https://www.itboard.jp/"
   ]
 }
