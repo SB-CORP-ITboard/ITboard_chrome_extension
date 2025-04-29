@@ -76,60 +76,68 @@ export const historyEvent = async (email) => {
   try {
     const browser = historyByBrowser();
     chrome.history.search(con.searchQuery, async (accessItems) => {
-      // 履歴データ形成
-      const data = await formatHistoryData(accessItems)
+      // 履歴データ形成（Promiseで確実にデータを取得）
+      const data = await formatHistoryData(accessItems);
 
-      // TODO: 非同期処理をしてもdataになぜか値がはいらない
-      // setTimeoutで遅延させると成功する
-      // ブラウザ起動時にsetTimeoutの秒数が短いとデータ形成ができずにエラーになるため5秒間とする
-      setTimeout(() => {
-        fetch(con.postShadowItUrl, {
-          headers:{
-            'Accept': 'application/json, */*',
-            'Content-type':'application/json'
-          },
-          method: "POST",
-          body: JSON.stringify({
-            email: email,
-            browser: browser,
-            data: data
-          }),
-        });
-      }, "5000")
+      fetch(con.postShadowItUrl, {
+        headers:{
+          'Accept': 'application/json, */*',
+          'Content-type':'application/json'
+        },
+        method: "POST",
+        body: JSON.stringify({
+          email: email,
+          browser: browser,
+          data: data
+        }),
+      });
     });
   } catch(e) { console.log(`${e} from historyEvent `) }
 };
 
 const formatHistoryData = async (accessItems) => {
-  const accessArray = []
+  const accessArray = [];
+  const urlMap = new Map();
 
-  for (let i = 0; i < accessItems.length; i++) {
-    const urlObj = { url: accessItems[i].url }
+  const promises = accessItems.map(item => {
+    return new Promise(resolve => {
+      const urlObj = { url: item.url };
 
-    // history.searchのvisitCountが指定期間(過去60日間)の範囲の利用回数ではないため、
-    // getVisitsを使用し、指定期間の範囲ではないデータは除外したデータを形成する
-    chrome.history.getVisits(urlObj, (gettingVisits) => {
-      const accessObj = {};
+      // history.searchのvisitCountが指定期間(過去60日間)の範囲の利用回数ではないため、
+      // getVisitsを使用し、指定期間の範囲ではないデータは除外したデータを形成する
+      chrome.history.getVisits(urlObj, (gettingVisits) => {
+        for (let n = 0; n < gettingVisits.length; n++) {
+          const visitData = gettingVisits[n];
+          const visitTime = new Date(visitData.visitTime);
+          const now = new Date();
+          const visitRange = new Date(now.setDate(now.getDate() - con.dateRage));
 
-      for (let n = 0; n < gettingVisits.length; n++) {
-        const visitData = gettingVisits[n]
-        const visitTime = new Date(visitData.visitTime)
-        const now = new Date()
-        const visitRange = new Date(now.setDate(now.getDate() - con.dateRage))
+          // 指定期間(過去60日間)以内のデータのみ処理
+          if (visitTime > visitRange) {
+            const cleanUrl = item.url.replace(/\?.*$/, "");
 
-        // ログイン日時が指定期間(過去60日間)以内ではない場合は形成しない
-        if (visitTime > visitRange) {
-          accessObj["url"] = accessItems[i].url.replace(/\?.*$/, "");
-          accessObj["title"] = accessItems[i].title;
-          accessObj["lastAccessDate"] = visitTime;
-
-          accessArray.push(accessObj);
+            if (!urlMap.has(cleanUrl) || visitTime > urlMap.get(cleanUrl).lastAccessDate) {
+              urlMap.set(cleanUrl, {
+                url: cleanUrl,
+                title: item.title,
+                lastAccessDate: visitTime
+              });
+            }
+          }
         }
-      }
+        resolve();
+      });
     });
-  }
-  return accessArray
-}
+  });
+
+  await Promise.all(promises);
+
+  urlMap.forEach(value => {
+    accessArray.push(value);
+  });
+
+  return accessArray;
+};
 
 // 履歴取得したブラウザを判別
 const historyByBrowser = () => {
