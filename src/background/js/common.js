@@ -97,15 +97,15 @@ export const historyEvent = async (email) => {
 
 const formatHistoryData = async (accessItems) => {
   const accessArray = [];
-  const urlMap = new Map();
 
   const promises = accessItems.map(item => {
     return new Promise(resolve => {
       const urlObj = { url: item.url };
 
-      // history.searchのvisitCountが指定期間(過去60日間)の範囲の利用回数ではないため、
-      // getVisitsを使用し、指定期間の範囲ではないデータは除外したデータを形成する
       chrome.history.getVisits(urlObj, (gettingVisits) => {
+        let latestVisit = null;
+        let latestTime = new Date(0);
+
         for (let n = 0; n < gettingVisits.length; n++) {
           const visitData = gettingVisits[n];
           const visitTime = new Date(visitData.visitTime);
@@ -114,27 +114,27 @@ const formatHistoryData = async (accessItems) => {
 
           // 指定期間(過去60日間)以内のデータのみ処理
           if (visitTime > visitRange) {
-            const cleanUrl = item.url.replace(/\?.*$/, "");
-
-            if (!urlMap.has(cleanUrl) || visitTime > urlMap.get(cleanUrl).lastAccessDate) {
-              urlMap.set(cleanUrl, {
-                url: cleanUrl,
+            if (visitTime > latestTime) {
+              latestTime = visitTime;
+              latestVisit = {
+                url: item.url.replace(/\?.*$/, ""),
                 title: item.title,
                 lastAccessDate: visitTime
-              });
+              };
             }
           }
         }
+
+        if (latestVisit) {
+          accessArray.push(latestVisit);
+        }
+
         resolve();
       });
     });
   });
 
   await Promise.all(promises);
-
-  urlMap.forEach(value => {
-    accessArray.push(value);
-  });
 
   return accessArray;
 };
