@@ -90,27 +90,21 @@ const popupHistoryEvent = async (email) => {
   try {
     const browser = popupHistoryByBrowser();
     chrome.history.search(popupSearchQuery, async (accessItems) => {
-      // 履歴データ形成
-      const data = await popupFormatHistoryData(accessItems)
+      // 履歴データ形成（Promiseで確実にデータを取得）
+      const data = await popupFormatHistoryData(accessItems);
 
-      // TODO: 非同期処理をしてもdataになぜか値がはいらない
-      // setTimeoutで遅延させると成功する
-      // ポップアップ: 0.1秒間
-      // ブラウザ起動時: 5秒間
-      setTimeout(() => {
-        fetch(postShadowItUrl, {
-          headers:{
-            'Accept': 'application/json, */*',
-            'Content-type':'application/json'
-          },
-          method: "POST",
-          body: JSON.stringify({
-            email: email,
-            browser: browser,
-            data: data
-          }),
-        });
-      }, "100")
+      fetch(postShadowItUrl, {
+        headers:{
+          'Accept': 'application/json, */*',
+          'Content-type':'application/json'
+        },
+        method: "POST",
+        body: JSON.stringify({
+          email: email,
+          browser: browser,
+          data: data
+        }),
+      });
     });
   } catch(e) { console.log(`${e} from popupHistoryEvent `) }
 };
@@ -125,37 +119,49 @@ const popupHistoryByBrowser = () => {
   }
 };
 
-
 const popupFormatHistoryData = async (accessItems) => {
-  const accessArray = []
+  const accessArray = [];
 
-  for (let i = 0; i < accessItems.length; i++) {
-    const urlObj = { url: accessItems[i].url }
+  const promises = accessItems.map(item => {
+    return new Promise(resolve => {
+      const urlObj = { url: item.url };
 
-    // history.searchのvisitCountが指定期間(過去60日間)の範囲の利用回数ではないため、
-    // getVisitsを使用し、指定期間の範囲ではないデータは除外したデータを形成する
-    chrome.history.getVisits(urlObj, (gettingVisits) => {
-      const accessObj = {};
+      chrome.history.getVisits(urlObj, (gettingVisits) => {
+        let latestVisit = null;
+        let latestTime = new Date(0);
 
-      for (let n = 0; n < gettingVisits.length; n++) {
-        const visitData = gettingVisits[n]
-        const visitTime = new Date(visitData.visitTime)
-        const now = new Date()
-        const visitRange = new Date(now.setDate(now.getDate() - popupDateRange))
+        for (let n = 0; n < gettingVisits.length; n++) {
+          const visitData = gettingVisits[n];
+          const visitTime = new Date(visitData.visitTime);
+          const now = new Date();
+          const visitRange = new Date(now.setDate(now.getDate() - popupDateRange));
 
-        // ログイン日時が指定期間(過去60日間)以内ではない場合は形成しない
-        if (visitTime > visitRange) {
-          accessObj["url"] = accessItems[i].url.replace(/\?.*$/, "");
-          accessObj["title"] = accessItems[i].title;
-          accessObj["lastAccessDate"] = visitTime;
-
-          accessArray.push(accessObj);
+          // 指定期間(過去60日間)以内のデータのみ処理
+          if (visitTime > visitRange) {
+            if (visitTime > latestTime) {
+              latestTime = visitTime;
+              latestVisit = {
+                url: item.url.replace(/\?.*$/, ""),
+                title: item.title,
+                lastAccessDate: visitTime
+              };
+            }
+          }
         }
-      }
+
+        if (latestVisit) {
+          accessArray.push(latestVisit);
+        }
+
+        resolve();
+      });
     });
-  }
-  return accessArray
-}
+  });
+
+  await Promise.all(promises);
+
+  return accessArray;
+};
 
 // ローカル確認用
 const postDistributeUrl =
