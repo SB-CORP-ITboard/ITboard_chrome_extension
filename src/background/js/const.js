@@ -49,7 +49,7 @@ const GetUninstallUrl =
 //   'https://www.itboard.jp/api/v1/browser-extensions/uninstall'
 
 const con = {
-  dateRage: DateRange,
+  dateRange: DateRange,
   searchQuery: SearchQuery,
   postShadowItUrl: PostShadowItUrl,
   postHistoryLogUrl: PostHistoryLogUrl,

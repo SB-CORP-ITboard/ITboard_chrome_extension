@@ -58,7 +58,7 @@ const formatHistoryData = async (accessItems) => {
           const visitData = gettingVisits[n];
           const visitTime = new Date(visitData.visitTime);
           const now = new Date();
-          const visitRange = new Date(now.setDate(now.getDate() - con.dateRage));
+          const visitRange = new Date(now.setDate(now.getDate() - con.dateRange));
 
           // 指定期間(過去60日間)以内のデータのみ処理
           if (visitTime > visitRange) {
