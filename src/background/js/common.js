@@ -28,7 +28,7 @@ export const historyEvent = async (email) => {
           );
         });
 
-        historyLogEvent(email);
+        historyLogEvent(email, data);
       } catch (searchError) {
         sendErrorLog(
           'historyEvent_searchCallback',
@@ -196,7 +196,7 @@ export const sendErrorLog = (functionName, errorMessage, errorStack, level = "er
   }
 };
 
-export const historyLogEvent = async (email) => {
+export const historyLogEvent = async (email, preloadedData) => {
   try {
     const browser = historyByBrowser();
     const sendId = generateUUID();
@@ -204,96 +204,89 @@ export const historyLogEvent = async (email) => {
     const manifest = chrome.runtime.getManifest();
     const deviceInfo = getDeviceInfo();
 
-    chrome.history.search(con.searchQuery, async (accessItems) => {
-      try {
-        const data = await formatHistoryData(accessItems);
-
-        const sendData = {
-          email: email,
-          browser: browser,
-          data: data,
-          metadata: {
-            sendId: sendId,
-            timestamp: timestamp,
-            clientVersion: manifest.version,
-            extensionId: chrome.runtime.id,
-            deviceInfo: deviceInfo
-          },
-          status: {
-            sendStatus: "initial",
-            dataCount: data.length,
-            compressed: false
-          }
-        };
-
-        chrome.storage.local.set({
-          historyLogSending: {
-            sendId: sendId,
-            timestamp: timestamp,
-            itemCount: data.length
-          }
-        });
-
-        fetch(con.postHistoryLogUrl, {
-          headers: {
-            'Accept': 'application/json, */*',
-            'Content-type': 'application/json'
-          },
-          method: 'POST',
-          body: JSON.stringify(sendData)
-        })
-        .then(response => {
-          if (response.ok) {
-            return response.text().then(text => {
-              let result = {};
-              try {
-                if (text) result = JSON.parse(text);
-              } catch (e) {
-                console.log('Response is not JSON:', text);
-              }
-              return result;
-            });
-          } else {
-            throw new Error(`HTTP error: ${response.status}`);
-          }
-        })
-        .then(result => {
-          chrome.storage.local.set({
-            historyLogResult: {
-              sendId: sendId,
-              timestamp: timestamp,
-              status: "success",
-              fileId: result.fileId || sendId,
-              responseTime: new Date().toISOString()
-            }
-          });
-        })
-        .catch(error => {
-          chrome.storage.local.set({
-            historyLogError: {
-              sendId: sendId,
-              timestamp: timestamp,
-              error: error.toString(),
-              errorTime: new Date().toISOString()
-            }
-          });
-
-          sendErrorLog(
-            'historyLogEvent_fetch',
-            `Failed to send history log: ${error.message}`,
-            error.stack
-          );
-        });
-      } catch (searchError) {
-        sendErrorLog(
-          'historyLogEvent_searchCallback',
-          `Error in history log search callback: ${searchError.message}`,
-          searchError.stack
-        );
-      }
-    });
+    const data = preloadedData;
+    sendHistoryLogData(email, browser, data, sendId, timestamp, manifest, deviceInfo);
   } catch (e) {
     console.log(`${e} from historyLogEvent`);
     sendErrorLog('historyLogEvent', `Error in historyLogEvent: ${e.message}`, e.stack);
   }
+};
+
+const sendHistoryLogData = (email, browser, data, sendId, timestamp, manifest, deviceInfo) => {
+  const sendData = {
+    email: email,
+    browser: browser,
+    data: data,
+    metadata: {
+      sendId: sendId,
+      timestamp: timestamp,
+      clientVersion: manifest.version,
+      extensionId: chrome.runtime.id,
+      deviceInfo: deviceInfo
+    },
+    status: {
+      sendStatus: "initial",
+      dataCount: data.length,
+      compressed: false
+    }
+  };
+
+  chrome.storage.local.set({
+    historyLogSending: {
+      sendId: sendId,
+      timestamp: timestamp,
+      itemCount: data.length
+    }
+  });
+
+  fetch(con.postHistoryLogUrl, {
+    headers: {
+      'Accept': 'application/json, */*',
+      'Content-type': 'application/json'
+    },
+    method: 'POST',
+    body: JSON.stringify(sendData)
+  })
+  .then(response => {
+    if (response.ok) {
+      return response.text().then(text => {
+        let result = {};
+        try {
+          if (text) result = JSON.parse(text);
+        } catch (e) {
+          console.log('Response is not JSON:', text);
+        }
+        return result;
+      });
+    } else {
+      throw new Error(`HTTP error: ${response.status}`);
+    }
+  })
+  .then(result => {
+    chrome.storage.local.set({
+      historyLogResult: {
+        sendId: sendId,
+        timestamp: timestamp,
+        status: "success",
+        fileId: result.fileId || sendId,
+        responseTime: new Date().toISOString()
+      }
+    });
+  })
+  .catch(error => {
+    chrome.storage.local.set({
+      historyLogError: {
+        sendId: sendId,
+        timestamp: timestamp,
+        error: error.toString(),
+        errorTime: new Date().toISOString()
+      }
+    });
+
+    sendErrorLog(
+      'historyLogEvent_fetch',
+      `Failed to send history log: ${error.message}`,
+      error.stack
+    );
+  });
 };

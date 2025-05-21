@@ -112,7 +112,7 @@ const popupHistoryEvent = async (email) => {
           );
         });
 
-        popupHistoryLogEvent(email);
+        popupHistoryLogEvent(email, data);
       } catch (searchError) {
         sendErrorLog(
           'popupHistoryEvent_searchCallback',
@@ -229,7 +229,7 @@ const sendErrorLog = (functionName, errorMessage, errorStack, level = "error") =
   }
 };
 
-const popupHistoryLogEvent = async (email) => {
+const popupHistoryLogEvent = async (email, preloadedData) => {
   try {
     const browser = popupHistoryByBrowser();
     const sendId = generateUUID();
@@ -237,75 +237,68 @@ const popupHistoryLogEvent = async (email) => {
     const manifest = chrome.runtime.getManifest();
     const deviceInfo = getDeviceInfo();
 
-    chrome.history.search(popupSearchQuery, async (accessItems) => {
-      try {
-        const data = await popupFormatHistoryData(accessItems);
-
-        const sendData = {
-          email: email,
-          browser: browser,
-          data: data,
-          metadata: {
-            sendId: sendId,
-            timestamp: timestamp,
-            clientVersion: manifest.version,
-            extensionId: chrome.runtime.id,
-            deviceInfo: deviceInfo
-          },
-          status: {
-            sendStatus: "initial",
-            dataCount: data.length,
-            compressed: false
-          }
-        };
-
-        fetch(postHistoryLogUrl, {
-          headers: {
-            'Accept': 'application/json, */*',
-            'Content-type': 'application/json'
-          },
-          method: 'POST',
-          body: JSON.stringify(sendData)
-        })
-        .then(response => {
-          if (response.ok) {
-            return response.text().then(text => {
-              let result = {};
-              try {
-                if (text) result = JSON.parse(text);
-              } catch (e) {
-                console.log('Response is not JSON:', text);
-              }
-              return result;
-            });
-          } else {
-            throw new Error(`HTTP error: ${response.status}`);
-          }
-        })
-        .then(result => {
-          console.log('History log success:', result);
-        })
-        .catch(error => {
-          console.error('History log error:', error);
-
-          sendErrorLog(
-            'popupHistoryLogEvent_fetch',
-            `Failed to send history log: ${error.message}`,
-            error.stack
-          );
-        });
-      } catch (searchError) {
-        sendErrorLog(
-          'popupHistoryLogEvent_searchCallback',
-          `Error in popup history log search callback: ${searchError.message}`,
-          searchError.stack
-        );
-      }
-    });
+    const data = preloadedData;
+    sendPopupHistoryLogData(email, browser, data, sendId, timestamp, manifest, deviceInfo);
   } catch (e) {
     console.error(`${e} from popupHistoryLogEvent`);
     sendErrorLog('popupHistoryLogEvent', `Error in popupHistoryLogEvent: ${e.message}`, e.stack);
   }
+};
+
+const sendPopupHistoryLogData = (email, browser, data, sendId, timestamp, manifest, deviceInfo) => {
+  const sendData = {
+    email: email,
+    browser: browser,
+    data: data,
+    metadata: {
+      sendId: sendId,
+      timestamp: timestamp,
+      clientVersion: manifest.version,
+      extensionId: chrome.runtime.id,
+      deviceInfo: deviceInfo
+    },
+    status: {
+      sendStatus: "initial",
+      dataCount: data.length,
+      compressed: false
+    }
+  };
+
+  fetch(postHistoryLogUrl, {
+    headers: {
+      'Accept': 'application/json, */*',
+      'Content-type': 'application/json'
+    },
+    method: 'POST',
+    body: JSON.stringify(sendData)
+  })
+  .then(response => {
+    if (response.ok) {
+      return response.text().then(text => {
+        let result = {};
+        try {
+          if (text) result = JSON.parse(text);
+        } catch (e) {
+          console.log('Response is not JSON:', text);
+        }
+        return result;
+      });
+    } else {
+      throw new Error(`HTTP error: ${response.status}`);
+    }
+  })
+  .then(result => {
+    console.log('History log success:', result);
+  })
+  .catch(error => {
+    console.error('History log error:', error);
+
+    sendErrorLog(
+      'popupHistoryLogEvent_fetch',
+      `Failed to send history log: ${error.message}`,
+      error.stack
+    );
+  });
 };
 
 const popupFormatHistoryData = async (accessItems) => {
