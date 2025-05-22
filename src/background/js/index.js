@@ -16,12 +16,7 @@ export const backgroundEvent = () => {
     startUpEvent();
   });
 
-  // 新しいタブが開かれた時
-  chrome.tabs.onCreated.addListener(() => {
-    newTabEvent();
-  });
-
-  // タブ内で画面遷移した時
+  // 新しいタブが開かれた時 or タブ内で画面遷移した時
   chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.status === 'complete' && tab.active) {
       tabNavigationEvent();
@@ -40,17 +35,6 @@ const installEvent = () => {
     }
   });
 }
-
-// 新しいタブを開いた時の処理
-const newTabEvent = () => {
-  shouldSendHistory((shouldSend, user) => {
-    if (shouldSend && user && user.email) {
-      const now = new Date();
-      chrome.storage.local.set({ postTimestamp: now.getTime() });
-      historyEvent(user.email);
-    }
-  });
-};
 
 // タブ内で遷移した時の処理
 const tabNavigationEvent = () => {
