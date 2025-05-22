@@ -13,8 +13,6 @@ const SearchQuery = {
 
 // リクエスト先
 // ローカル確認用
-const PostDistributeUrl =
-  "http://localhost:3000/v1/browser-extensions/distribute";
 const PostShadowItUrl =
   "http://localhost:3000/v1/browser-extensions/browsing-histories";
 const PostHistoryLogUrl =
@@ -25,8 +23,6 @@ const GetUninstallUrl =
   "http://localhost:3000/v1/browser-extensions/uninstall"
 
 // STG確認用
-// const PostDistributeUrl =
-//   'https://stg-01.itboard.jp/api/v1/browser-extensions/distribute'
 // const PostShadowItUrl =
 //   'https://stg-01.itboard.jp/api/v1/browser-extensions/browsing-histories'
 // const PostHistoryLogUrl =
@@ -37,8 +33,6 @@ const GetUninstallUrl =
 //   'https://stg-01.itboard.jp/api/v1/browser-extensions/uninstall'
 
 // 本番用
-// const PostDistributeUrl =
-//   'https://www.itboard.jp/api/v1/browser-extensions/distribute'
 // const PostShadowItUrl =
 //   'https://www.itboard.jp/api/v1/browser-extensions/browsing-histories'
 // const PostHistoryLogUrl =
