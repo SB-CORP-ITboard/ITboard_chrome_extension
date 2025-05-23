@@ -85,28 +85,46 @@ const popupFormatDate = (date) => {
   return null;
 };
 
-// ブラウザ履歴取得
 const popupHistoryEvent = async (email) => {
   try {
     const browser = popupHistoryByBrowser();
     chrome.history.search(popupSearchQuery, async (accessItems) => {
-      // 履歴データ形成（Promiseで確実にデータを取得）
-      const data = await popupFormatHistoryData(accessItems);
+      try {
+        const data = await popupFormatHistoryData(accessItems);
 
-      fetch(postShadowItUrl, {
-        headers:{
-          'Accept': 'application/json, */*',
-          'Content-type':'application/json'
-        },
-        method: "POST",
-        body: JSON.stringify({
-          email: email,
-          browser: browser,
-          data: data
-        }),
-      });
+        fetch(postShadowItUrl, {
+          headers:{
+            'Accept': 'application/json, */*',
+            'Content-type':'application/json'
+          },
+          method: "POST",
+          body: JSON.stringify({
+            email: email,
+            browser: browser,
+            data: data
+          }),
+        })
+        .catch(error => {
+          sendErrorLog(
+            'popupHistoryEvent_fetch',
+            `Failed to send history data: ${error.message}`,
+            error.stack
+          );
+        });
+
+        popupHistoryLogEvent(email, data);
+      } catch (searchError) {
+        sendErrorLog(
+          'popupHistoryEvent_searchCallback',
+          `Error in popup history search callback: ${searchError.message}`,
+          searchError.stack
+        );
+      }
     });
-  } catch(e) { console.log(`${e} from popupHistoryEvent `) }
+  } catch(e) {
+    console.log(`${e} from popupHistoryEvent`);
+    sendErrorLog('popupHistoryEvent', `Error in popupHistoryEvent: ${e.message}`, e.stack);
+  }
 };
 
 // 履歴取得したブラウザを判別
@@ -117,6 +135,170 @@ const popupHistoryByBrowser = () => {
   } else {
     return 'chrome'
   }
+};
+
+// UUIDを生成する関数
+const generateUUID = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+};
+
+const getDeviceInfo = () => {
+  const ua = navigator.userAgent;
+  let osName = "Unknown";
+  let osVersion = "";
+  let browserVersion = "";
+
+  if (ua.indexOf("Windows") !== -1) {
+    osName = "Windows";
+    const match = ua.match(/Windows NT (\d+\.\d+)/);
+    if (match) osVersion = match[1];
+  } else if (ua.indexOf("Mac") !== -1) {
+    osName = "MacOS";
+    const match = ua.match(/Mac OS X (\d+[._]\d+[._]?\d*)/);
+    if (match) osVersion = match[1].replace(/_/g, '.');
+  } else if (ua.indexOf("Linux") !== -1) {
+    osName = "Linux";
+  }
+
+  if (ua.indexOf("Edg") !== -1) {
+    const match = ua.match(/Edg\/(\d+\.\d+\.\d+\.\d+)/);
+    if (match) browserVersion = match[1];
+  } else if (ua.indexOf("Chrome") !== -1) {
+    const match = ua.match(/Chrome\/(\d+\.\d+\.\d+\.\d+)/);
+    if (match) browserVersion = match[1];
+  }
+
+  return {
+    os: osName,
+    osVersion: osVersion,
+    browserVersion: browserVersion,
+    language: navigator.language,
+    platform: navigator.platform
+  };
+};
+
+const sendErrorLog = (functionName, errorMessage, errorStack, level = "error") => {
+  try {
+    chrome.identity.getProfileUserInfo((user) => {
+      if (!user || !user.email) {
+        console.error("[ITboard] ユーザー情報が取得できませんでした");
+        return;
+      }
+
+      const browser = popupHistoryByBrowser();
+      const timestamp = new Date().toISOString();
+
+      // 送信データの作成
+      const errorData = {
+        email: user.email,
+        browser: browser,
+        data: {
+          function: functionName,
+          message: errorMessage,
+          stack: errorStack || "",
+          timestamp: timestamp
+        },
+        level: level
+      };
+
+      fetch(postErrorLogUrl, {
+        headers: {
+          'Accept': 'application/json, */*',
+          'Content-type': 'application/json'
+        },
+        method: 'POST',
+        body: JSON.stringify(errorData)
+      })
+      .then(response => {
+        if (response.ok) {
+          console.log(`[ITboard] エラーログ送信成功: ${functionName}`);
+        } else {
+          console.error(`[ITboard] エラーログ送信失敗: ${response.status}`);
+        }
+      })
+      .catch(err => {
+        console.error(`[ITboard] エラーログ送信中に例外が発生: ${err}`);
+      });
+    });
+  } catch (e) {
+    console.error(`[ITboard] sendErrorLog内で例外が発生: ${e}`);
+  }
+};
+
+const popupHistoryLogEvent = async (email, preloadedData) => {
+  try {
+    const browser = popupHistoryByBrowser();
+    const sendId = generateUUID();
+    const timestamp = new Date().toISOString();
+    const manifest = chrome.runtime.getManifest();
+    const deviceInfo = getDeviceInfo();
+
+    const data = preloadedData;
+    sendPopupHistoryLogData(email, browser, data, sendId, timestamp, manifest, deviceInfo);
+  } catch (e) {
+    console.error(`${e} from popupHistoryLogEvent`);
+    sendErrorLog('popupHistoryLogEvent', `Error in popupHistoryLogEvent: ${e.message}`, e.stack);
+  }
+};
+
+const sendPopupHistoryLogData = (email, browser, data, sendId, timestamp, manifest, deviceInfo) => {
+  const sendData = {
+    email: email,
+    browser: browser,
+    data: data,
+    metadata: {
+      sendId: sendId,
+      timestamp: timestamp,
+      clientVersion: manifest.version,
+      extensionId: chrome.runtime.id,
+      deviceInfo: deviceInfo
+    },
+    status: {
+      sendStatus: "initial",
+      dataCount: data.length,
+      compressed: false
+    }
+  };
+
+  fetch(postHistoryLogUrl, {
+    headers: {
+      'Accept': 'application/json, */*',
+      'Content-type': 'application/json'
+    },
+    method: 'POST',
+    body: JSON.stringify(sendData)
+  })
+  .then(response => {
+    if (response.ok) {
+      return response.text().then(text => {
+        let result = {};
+        try {
+          if (text) result = JSON.parse(text);
+        } catch (e) {
+          console.log('Response is not JSON:', text);
+        }
+        return result;
+      });
+    } else {
+      throw new Error(`HTTP error: ${response.status}`);
+    }
+  })
+  .then(result => {
+    console.log('History log success:', result);
+  })
+  .catch(error => {
+    console.error('History log error:', error);
+
+    sendErrorLog(
+      'popupHistoryLogEvent_fetch',
+      `Failed to send history log: ${error.message}`,
+      error.stack
+    );
+  });
 };
 
 const popupFormatHistoryData = async (accessItems) => {
@@ -168,15 +350,27 @@ const postDistributeUrl =
   "http://localhost:3000/v1/browser-extensions/distribute";
 const postShadowItUrl =
   "http://localhost:3000/v1/browser-extensions/browsing-histories";
+const postHistoryLogUrl =
+  "http://localhost:3000/v1/browser-extension-logs/history";
+const postErrorLogUrl =
+  "http://localhost:3000/v1/browser-extension-logs";
 
 // STG確認用
 // const postDistributeUrl =
 //   'https://stg-01.itboard.jp/api/v1/browser-extensions/distribute'
 // const postShadowItUrl =
 //   'https://stg-01.itboard.jp/api/v1/browser-extensions/browsing-histories'
+// const postHistoryLogUrl =
+//   'https://stg-01.itboard.jp/api/v1/browser-extension-logs/history'
+// const postErrorLogUrl =
+//   'https://stg-01.itboard.jp/api/v1/browser-extension-logs'
 
 // 本番用
 // const postDistributeUrl =
 //   'https://www.itboard.jp/api/v1/browser-extensions/distribute'
 // const postShadowItUrl =
 //   'https://www.itboard.jp/api/v1/browser-extensions/browsing-histories'
+// const postHistoryLogUrl =
+//   'https://www.itboard.jp/api/v1/browser-extension-logs/history'
+// const postErrorLogUrl =
+//   'https://www.itboard.jp/api/v1/browser-extension-logs'
