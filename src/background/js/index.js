@@ -11,11 +11,6 @@ export const backgroundEvent = () => {
     installEvent();
   });
 
-  // ブラウザ起動時
-  chrome.runtime.onStartup.addListener(() => {
-    startUpEvent();
-  });
-
   // 新しいタブが開かれた時 or タブ内で画面遷移した時
   chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.status === 'complete' && tab.active) {
@@ -73,17 +68,6 @@ const shouldSendHistory = (callback) => {
     });
   });
 };
-
-// 履歴情報取得(ブラウザ起動時)
-const startUpEvent = () => {
-  shouldSendHistory((shouldSend, user) => {
-    if (shouldSend && user && user.email) {
-      const now = new Date();
-      chrome.storage.local.set({ postTimestamp: now.getTime() });
-      historyEvent(user.email);
-    }
-  });
-}
 
 // 拡張機能アンインストール時、GETリクエストでシャドーIT拡張機能に関連するデータを削除する。
 const setUninstallUrl = (userEmail) => {
