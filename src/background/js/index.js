@@ -35,9 +35,14 @@ const installEvent = () => {
 const tabNavigationEvent = () => {
   shouldSendHistory((shouldSend, user) => {
     if (shouldSend && user && user.email) {
-      const now = new Date();
-      chrome.storage.local.set({ postTimestamp: now.getTime() });
-      historyEvent(user.email);
+      chrome.storage.local.get(["postTimestamp"], (storage) => {
+        const now = new Date();
+        chrome.storage.local.set({ postTimestamp: now.getTime() });
+        // postTimestamp の値の型が null か undefined の場合は履歴を送信しない
+        if (postTimestamp != null) {
+          historyEvent(user.email, storage.postTimestamp);
+        }
+      })
     }
   });
 };
