@@ -33,16 +33,11 @@ const installEvent = () => {
 
 // タブ内で遷移した時の処理
 const tabNavigationEvent = () => {
-  shouldSendHistory((shouldSend, user) => {
-    if (shouldSend && user && user.email) {
-      chrome.storage.local.get(["postTimestamp"], (storage) => {
-        const now = new Date();
-        chrome.storage.local.set({ postTimestamp: now.getTime() });
-        // postTimestamp の値の型が null か undefined の場合は履歴を送信しない
-        if (postTimestamp != null) {
-          historyEvent(user.email, storage.postTimestamp);
-        }
-      })
+  shouldSendHistory((shouldSend, user, beforePostTimestamp) => {
+    if (shouldSend && user && user.email && beforePostTimestamp) {
+      const now = new Date();
+      chrome.storage.local.set({ postTimestamp: now.getTime() });
+      historyEvent(user.email, beforePostTimestamp);
     }
   });
 };
@@ -65,11 +60,17 @@ const shouldSendHistory = (callback) => {
       // 本日分の履歴取得確認
       // 取得済みの場合は送信しない
       if (postHistoryDate === nowDate) {
-        callback(false, user);
+        callback(false, user, undefined);
         return;
       }
 
-      callback(true, user);
+      // postTimestamp が「存在しない」or「値が null か undefined」の場合は送信しない
+      if (storage.postTimestamp == null) {
+        callback(false, user, undefined);
+        return;
+      }
+
+      callback(true, user, storage.postTimestamp);
     });
   });
 };

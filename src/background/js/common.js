@@ -1,10 +1,10 @@
 import { con } from "./const.js";
 
-export const historyEvent = async (email, postTimestamp = undefined) => {
+export const historyEvent = async (email, beforePostTimestamp = undefined) => {
   try {
     const browser = historyByBrowser();
-    if (postTimestamp != undefined) {
-      con.searchQuery.startTime = postTimestamp
+    if (beforePostTimestamp != undefined) {
+      con.searchQuery.startTime = beforePostTimestamp
     }
     chrome.history.search(con.searchQuery, async (accessItems) => {
       try {
