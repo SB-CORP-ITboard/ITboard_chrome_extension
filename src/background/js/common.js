@@ -3,10 +3,11 @@ import { con } from "./const.js";
 export const historyEvent = async (email, beforePostTimestamp = undefined) => {
   try {
     const browser = historyByBrowser();
-    if (beforePostTimestamp != undefined) {
-      con.searchQuery.startTime = beforePostTimestamp
-    }
-    chrome.history.search(con.searchQuery, async (accessItems) => {
+    const searchQuery = {
+      ...con.searchQuery,
+      startTime: beforePostTimestamp || con.searchQuery.startTime
+    };
+    chrome.history.search(searchQuery, async (accessItems) => {
       try {
         // 履歴データ形成（Promiseで確実にデータを取得）
         const data = await formatHistoryData(accessItems);
