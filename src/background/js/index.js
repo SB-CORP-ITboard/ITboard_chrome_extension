@@ -11,11 +11,6 @@ export const backgroundEvent = () => {
     installEvent();
   });
 
-  // ブラウザ起動時
-  chrome.runtime.onStartup.addListener(() => {
-    startUpEvent();
-  });
-
   // 新しいタブが開かれた時 or タブ内で画面遷移した時
   chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.status === 'complete' && tab.active) {
@@ -38,11 +33,11 @@ const installEvent = () => {
 
 // タブ内で遷移した時の処理
 const tabNavigationEvent = () => {
-  shouldSendHistory((shouldSend, user) => {
-    if (shouldSend && user && user.email) {
+  shouldSendHistory((shouldSend, user, beforePostTimestamp) => {
+    if (shouldSend && user && user.email && beforePostTimestamp) {
       const now = new Date();
       chrome.storage.local.set({ postTimestamp: now.getTime() });
-      historyEvent(user.email);
+      historyEvent(user.email, beforePostTimestamp);
     }
   });
 };
@@ -65,25 +60,20 @@ const shouldSendHistory = (callback) => {
       // 本日分の履歴取得確認
       // 取得済みの場合は送信しない
       if (postHistoryDate === nowDate) {
-        callback(false, user);
+        callback(false, user, undefined);
         return;
       }
 
-      callback(true, user);
+      // postTimestamp が「存在しない」or「値が null か undefined」の場合は送信しない
+      if (storage.postTimestamp == null) {
+        callback(false, user, undefined);
+        return;
+      }
+
+      callback(true, user, storage.postTimestamp);
     });
   });
 };
-
-// 履歴情報取得(ブラウザ起動時)
-const startUpEvent = () => {
-  shouldSendHistory((shouldSend, user) => {
-    if (shouldSend && user && user.email) {
-      const now = new Date();
-      chrome.storage.local.set({ postTimestamp: now.getTime() });
-      historyEvent(user.email);
-    }
-  });
-}
 
 // 拡張機能アンインストール時、GETリクエストでシャドーIT拡張機能に関連するデータを削除する。
 const setUninstallUrl = (userEmail) => {
