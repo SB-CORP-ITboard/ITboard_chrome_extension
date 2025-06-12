@@ -353,47 +353,43 @@ const popupFormatHistoryData = async (accessItems) => {
   return accessArray;
 };
 
-export const popupPostDeviceEvent = async (email) => {
-  return new Promise((resolve) => {
-    chrome.storage.local.get('device_id', async (storage) => {
-      if (storage.device_id) {
-        resolve(storage.device_id);
-        return;
-      }
+const popupPostDeviceEvent = async (email) => {
+  try {
+    const storage = await chrome.storage.local.get('device_id');
 
-      try {
-        const browser = popupHistoryByBrowser();
-        const response = await fetch(deviceUrl, {
-          headers: {
-            'Accept': 'application/json, */*',
-            'Content-type': 'application/json',
-          },
-          method: 'POST',
-          body: JSON.stringify({ email, browser }),
-        });
+    if (storage.device_id) {
+      return storage.device_id;
+    }
 
-        if (!response.ok) {
-          console.error(`[ITboard] device 作成リクエスト失敗: ${response.status}`);
-          resolve(null);
-          return;
-        }
+    const browser = popupHistoryByBrowser();
 
-        const data = await response.json();
-        const deviceId = data.device_id;
-
-        if (deviceId) {
-          chrome.storage.local.set({ device_id: deviceId });
-          resolve(deviceId);
-        } else {
-          console.warn('[ITboard] device_id がレスポンスに含まれていません');
-          resolve(null);
-        }
-      } catch (e) {
-        console.error(`[ITboard] postDeviceEvent 内で例外が発生: ${e}`);
-        resolve(null);
-      }
+    const response = await fetch(con.deviceUrl, {
+      headers:{
+        'Accept': 'application/json, */*',
+        'Content-type':'application/json'
+      },
+      method: 'POST',
+      body: JSON.stringify({ email, browser }),
     });
-  });
+
+    if (!response.ok) {
+      throw new Error(`[ITboard] device 作成リクエスト失敗: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const deviceId = data.device_id;
+
+    if (deviceId) {
+      chrome.storage.local.set({ device_id: deviceId });
+      return deviceId;
+    } else {
+      throw new Error(`[ITboard] device_id がレスポンスに含まれていません`);
+    }
+
+  } catch (e) {
+    console.error(e.message);
+    return null;
+  }
 };
 
 // ローカル確認用
