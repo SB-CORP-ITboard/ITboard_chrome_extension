@@ -1,6 +1,9 @@
 import {
+  postDeviceEvent,
+  changeStorageEvent,
   historyEvent,
-  formatDate
+  formatDate,
+  historyByBrowser
 } from "./common.js";
 import { con } from "./const.js";
 
@@ -17,27 +20,46 @@ export const backgroundEvent = () => {
       tabNavigationEvent();
     }
   });
+
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    changeStorageEvent(changes, areaName)
+  });
 };
 
 // 履歴情報取得(インストール時)
 const installEvent = () => {
-  chrome.identity.getProfileUserInfo((user) => {
+  chrome.identity.getProfileUserInfo(async (user) => {
     if (user.email) {
       setUninstallUrl(user.email);
+
+      const deviceId = await postDeviceEvent(user.email);
+
+      if (!deviceId) {
+        console.error("[ITboard] device_id 取得処理失敗");
+        return;
+      }
+
       const now = new Date();
       chrome.storage.local.set({ postTimestamp: now.getTime() });
-      historyEvent(user.email);
+      historyEvent(user.email, deviceId);
     }
   });
 }
 
 // タブ内で遷移した時の処理
 const tabNavigationEvent = () => {
-  shouldSendHistory((shouldSend, user, beforePostTimestamp) => {
+  shouldSendHistory(async (shouldSend, user, beforePostTimestamp) => {
     if (shouldSend && user && user.email && beforePostTimestamp) {
+      const deviceId = await postDeviceEvent(user.email);
+
+      if (!deviceId) {
+        console.error("[ITboard] device_id 取得処理失敗");
+        return;
+      }
+
       const now = new Date();
       chrome.storage.local.set({ postTimestamp: now.getTime() });
-      historyEvent(user.email, beforePostTimestamp);
+      historyEvent(user.email, deviceId, beforePostTimestamp);
     }
   });
 };
@@ -76,8 +98,11 @@ const shouldSendHistory = (callback) => {
 };
 
 // 拡張機能アンインストール時、GETリクエストでシャドーIT拡張機能に関連するデータを削除する。
-const setUninstallUrl = (userEmail) => {
-  chrome.runtime.setUninstallURL(
-    con.getUninstallUrl + '?email=' + userEmail
-  )
+const setUninstallUrl = (email) => {
+  const uninstallUrl = `${con.getUninstallUrl}?${new URLSearchParams({
+    email,
+    browser: historyByBrowser()
+  }).toString()}`;
+
+  chrome.runtime.setUninstallURL(uninstallUrl);
 };

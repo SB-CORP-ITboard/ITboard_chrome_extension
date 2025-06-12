@@ -1,6 +1,6 @@
 import { con } from "./const.js";
 
-export const historyEvent = async (email, beforePostTimestamp = undefined) => {
+export const historyEvent = async (email, deviceId, beforePostTimestamp = undefined) => {
   try {
     const browser = historyByBrowser();
     const searchQuery = {
@@ -21,6 +21,7 @@ export const historyEvent = async (email, beforePostTimestamp = undefined) => {
           body: JSON.stringify({
             email: email,
             browser: browser,
+            deviceId: deviceId,
             data: data
           }),
         })
@@ -92,7 +93,7 @@ const formatHistoryData = async (accessItems) => {
 };
 
 // 履歴取得したブラウザを判別
-const historyByBrowser = () => {
+export const historyByBrowser = () => {
   const agent = navigator.userAgent.toLowerCase()
   if (agent.indexOf("edg") != -1) {
     return 'edge'
@@ -293,4 +294,140 @@ const sendHistoryLogData = (email, browser, data, sendId, timestamp, manifest, d
       error.stack
     );
   });
+};
+
+export const postDeviceEvent = async (email) => {
+  return new Promise((resolve) => {
+    chrome.storage.local.get('device_id', async (storage) => {
+      if (storage.device_id) {
+        resolve(storage.device_id);
+        return;
+      }
+
+      try {
+        const browser = historyByBrowser();
+        const response = await fetch(con.deviceUrl, {
+          headers:{
+            'Accept': 'application/json, */*',
+            'Content-type':'application/json'
+          },
+          method: 'POST',
+          body: JSON.stringify({ email, browser }),
+        });
+
+        if (!response.ok) {
+          console.error(`[ITboard] device 作成リクエスト失敗: ${response.status}`);
+          resolve(null);
+          return;
+        }
+
+        const data = await response.json();
+        const deviceId = data.device_id;
+
+        if (deviceId) {
+          chrome.storage.local.set({ device_id: deviceId });
+          resolve(deviceId);
+        } else {
+          console.error(`[ITboard] device_id がレスポンスに含まれていません`);
+        }
+      } catch (e) {
+        console.error(`[ITboard] postDeviceEvent 内で例外が発生: ${e}`);
+        resolve(null);
+      }
+    });
+  });
+};
+
+export const changeStorageEvent = async (changes, areaName) => {
+  if (areaName !== 'local') {
+    return;
+  }
+
+  // device_id が変更された場合の処理
+  if (changes.device_id) {
+    const { oldValue, newValue } = changes.device_id;
+
+    // device_id が実際に変更された場合のみ実行
+    if (oldValue && oldValue !== newValue) {
+      chrome.identity.getProfileUserInfo(async (user) => {
+        if (user.email) {
+          const browser = historyByBrowser();
+
+          const device = await getDevice(oldValue, user.email, browser);
+
+          if (device && device.device_id) {
+            chrome.storage.local.set({ device_id: device.device_id }, () => {
+              console.log(`[ITboard] device_id を再設定: ${device.device_id}`);
+            });
+          } else {
+            console.error('[ITboard] レスポンスから device_id を取得失敗');
+          }
+        }
+      });
+    }
+  }
+
+  // postTimestamp が削除された場合の処理
+  if (changes.postTimestamp) {
+    const { oldValue, newValue } = changes.postTimestamp;
+
+    // device_id が実際に変更された場合のみ実行
+    if (oldValue && oldValue !== newValue) {
+      chrome.identity.getProfileUserInfo(async (user) => {
+        if (user.email) {
+          const storage = await chrome.storage.local.get('device_id');
+          const deviceId = storage.device_id;
+
+          if (!deviceId) {
+            console.error('[ITboard] device_idがローカルストレージに見つからないため、postTimestampの再取得を中断');
+            return;
+          }
+
+          const browser = historyByBrowser();
+
+          const device = await getDevice(deviceId, user.email, browser);
+
+          if (device && device.last_request_at) {
+            chrome.storage.local.set({ postTimestamp: device.last_request_at }, () => {
+              console.log(`[ITboard] postTimestamp を再設定: ${device.last_request_at}`);
+            });
+          } else {
+            console.error('[ITboard] レスポンスから last_request_at を取得失敗');
+          }
+        }
+      });
+    }
+  }
+};
+
+const getDevice = async (deviceId, email, browser) => {
+  const params = new URLSearchParams({
+    device_id: deviceId,
+    email: email,
+    browser: browser,
+  });
+
+  const url = `${con.deviceUrl}?${params.toString()}`;
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+      },
+    });
+
+    if (!response.ok) {
+      console.error(`[ITboard] 取得リクエスト失敗: ${response.status}`);
+      return null;
+    }
+
+    const data = await response.json();
+    return data;
+
+  } catch (e) {
+    console.error(`[ITboard] getDevice 内で例外発生: ${e}`);
+    return null;
+  }
 };

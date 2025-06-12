@@ -67,10 +67,17 @@ const popupEvent = () => {
 
     // 既に履歴を送信している場合は処理を行わない
     if (postHistoryDate !== nowDate) {
-      chrome.identity.getProfileUserInfo((user) => {
+      chrome.identity.getProfileUserInfo(async (user) => {
         if (user.email) {
+          const deviceId = await popupPostDeviceEvent(user.email);
+
+          if (!deviceId) {
+            console.error("[ITboard] device_id 取得処理失敗");
+            return;
+          }
+
           chrome.storage.local.set({ postTimestamp: now.getTime() });
-          popupHistoryEvent(user.email);
+          popupHistoryEvent(user.email, deviceId);
         }
       });
     }
@@ -101,6 +108,7 @@ const popupHistoryEvent = async (email) => {
           body: JSON.stringify({
             email: email,
             browser: browser,
+            deviceId: deviceId,
             data: data
           }),
         })
@@ -345,32 +353,81 @@ const popupFormatHistoryData = async (accessItems) => {
   return accessArray;
 };
 
+export const popupPostDeviceEvent = async (email) => {
+  return new Promise((resolve) => {
+    chrome.storage.local.get('device_id', async (storage) => {
+      if (storage.device_id) {
+        resolve(storage.device_id);
+        return;
+      }
+
+      try {
+        const browser = popupHistoryByBrowser();
+        const response = await fetch(deviceUrl, {
+          headers: {
+            'Accept': 'application/json, */*',
+            'Content-type': 'application/json',
+          },
+          method: 'POST',
+          body: JSON.stringify({ email, browser }),
+        });
+
+        if (!response.ok) {
+          console.error(`[ITboard] device 作成リクエスト失敗: ${response.status}`);
+          resolve(null);
+          return;
+        }
+
+        const data = await response.json();
+        const deviceId = data.device_id;
+
+        if (deviceId) {
+          chrome.storage.local.set({ device_id: deviceId });
+          resolve(deviceId);
+        } else {
+          console.warn('[ITboard] device_id がレスポンスに含まれていません');
+          resolve(null);
+        }
+      } catch (e) {
+        console.error(`[ITboard] postDeviceEvent 内で例外が発生: ${e}`);
+        resolve(null);
+      }
+    });
+  });
+};
+
 // ローカル確認用
 const postDistributeUrl =
   "http://localhost:3000/v1/browser-extensions/distribute";
 const postShadowItUrl =
-  "http://localhost:3000/v1/browser-extensions/browsing-histories";
+  "http://localhost:3000/v1/browser-extensions/browsing-histories_with_device";
 const postHistoryLogUrl =
   "http://localhost:3000/v1/browser-extension-logs/history";
 const postErrorLogUrl =
   "http://localhost:3000/v1/browser-extension-logs";
+const deviceUrl =
+  "http://localhost:3000/v1/extension_browsing_history_devices"
 
 // STG確認用
 // const postDistributeUrl =
 //   'https://stg-01.itboard.jp/api/v1/browser-extensions/distribute'
 // const postShadowItUrl =
-//   'https://stg-01.itboard.jp/api/v1/browser-extensions/browsing-histories'
+//   'https://stg-01.itboard.jp/api/v1/browser-extensions/browsing-histories_with_device'
 // const postHistoryLogUrl =
 //   'https://stg-01.itboard.jp/api/v1/browser-extension-logs/history'
 // const postErrorLogUrl =
 //   'https://stg-01.itboard.jp/api/v1/browser-extension-logs'
+// const deviceUrl =
+//   "https://stg-01.itboard.jp/api/v1/extension_browsing_history_devices"
 
 // 本番用
 // const postDistributeUrl =
 //   'https://www.itboard.jp/api/v1/browser-extensions/distribute'
 // const postShadowItUrl =
-//   'https://www.itboard.jp/api/v1/browser-extensions/browsing-histories'
+//   'https://www.itboard.jp/api/v1/browser-extensions/browsing-histories_with_device'
 // const postHistoryLogUrl =
 //   'https://www.itboard.jp/api/v1/browser-extension-logs/history'
 // const postErrorLogUrl =
 //   'https://www.itboard.jp/api/v1/browser-extension-logs'
+// const deviceUrl =
+//   "https://www.itboard.jp/api/v1/extension_browsing_history_devices"

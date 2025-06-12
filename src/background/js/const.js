@@ -14,33 +14,39 @@ const SearchQuery = {
 // リクエスト先
 // ローカル確認用
 const PostShadowItUrl =
-  "http://localhost:3000/v1/browser-extensions/browsing-histories";
+  "http://localhost:3000/v1/browser-extensions/browsing-histories_with_device";
 const PostHistoryLogUrl =
   "http://localhost:3000/v1/browser-extension-logs/history";
 const PostErrorLogUrl =
   "http://localhost:3000/v1/browser-extension-logs";
 const GetUninstallUrl =
-  "http://localhost:3000/v1/browser-extensions/uninstall"
+  "http://localhost:3000/v1/browser-extensions/uninstall_with_device"
+const DeviceUrl =
+  "http://localhost:3000/v1/extension_browsing_history_devices"
 
 // STG確認用
 // const PostShadowItUrl =
-//   'https://stg-01.itboard.jp/api/v1/browser-extensions/browsing-histories'
+//   'https://stg-01.itboard.jp/api/v1/browser-extensions/browsing-histories_with_device'
 // const PostHistoryLogUrl =
 //   'https://stg-01.itboard.jp/api/v1/browser-extension-logs/history'
 // const PostErrorLogUrl =
 //   'https://stg-01.itboard.jp/api/v1/browser-extension-logs'
 // const GetUninstallUrl =
-//   'https://stg-01.itboard.jp/api/v1/browser-extensions/uninstall'
+//   'https://stg-01.itboard.jp/api/v1/browser-extensions/uninstall_with_device'
+// const DeviceUrl =
+//   "https://stg-01.itboard.jp/api/v1/extension_browsing_history_devices"
 
 // 本番用
 // const PostShadowItUrl =
-//   'https://www.itboard.jp/api/v1/browser-extensions/browsing-histories'
+//   'https://www.itboard.jp/api/v1/browser-extensions/browsing-histories_with_device'
 // const PostHistoryLogUrl =
 //   'https://www.itboard.jp/api/v1/browser-extension-logs/history'
 // const PostErrorLogUrl =
 //   'https://www.itboard.jp/api/v1/browser-extension-logs'
 // const GetUninstallUrl =
-//   'https://www.itboard.jp/api/v1/browser-extensions/uninstall'
+//   'https://www.itboard.jp/api/v1/browser-extensions/uninstall_with_device'
+// const DeviceUrl =
+//   "https://www.itboard.jp/api/v1/extension_browsing_history_devices"
 
 const con = {
   dateRange: DateRange,
@@ -49,6 +55,7 @@ const con = {
   postHistoryLogUrl: PostHistoryLogUrl,
   postErrorLogUrl: PostErrorLogUrl,
   getUninstallUrl: GetUninstallUrl,
+  deviceUrl: DeviceUrl
 };
 
 Object.freeze(con);
