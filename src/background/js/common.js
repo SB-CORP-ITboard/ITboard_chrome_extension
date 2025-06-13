@@ -349,11 +349,6 @@ const postDevice = async (email, browser) => {
 };
 
 export const changeStorageEvent = (changes, areaName) => {
-  if (isStorageUpdate) {
-    isStorageUpdate = false;
-    return;
-  }
-
   if (areaName !== 'local') {
     return;
   }

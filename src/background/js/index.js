@@ -23,7 +23,35 @@ export const backgroundEvent = () => {
   });
 
   chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (isStorageUpdate) {
+      isStorageUpdate = false;
+      return;
+    }
     changeStorageEvent(changes, areaName)
+  });
+
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === "getOrCreateDeviceId") {
+      (async () => {
+        const deviceId = await postDeviceEvent(message.payload.email);
+        sendResponse({ deviceId: deviceId });
+      })();
+      return true;
+    }
+    if (message.action === "updateTimestampAndHistoryEvent") {
+      (async () => {
+        try {
+          setStorageUpdateFlag(true);
+          await chrome.storage.local.set({ postTimestamp: message.payload.timestamp });
+          await historyEvent(message.payload.email, message.payload.deviceId);
+          sendResponse({ status: "success" });
+        } catch (error) {
+          setStorageUpdateFlag(false);
+          sendResponse({ status: "error", message: error.message });
+        }
+      })();
+      return true;
+    }
   });
 };
 
