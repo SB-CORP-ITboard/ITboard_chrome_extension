@@ -1,5 +1,10 @@
 import { con } from "./const.js";
 
+let isStorageUpdate = false;
+export const setStorageUpdateFlag = (value) => {
+  isInternalUpdate = value;
+};
+
 export const historyEvent = async (email, deviceId, beforePostTimestamp = undefined) => {
   try {
     const browser = historyByBrowser();
@@ -306,40 +311,46 @@ export const postDeviceEvent = async (email) => {
 
     const browser = historyByBrowser();
 
-    const response = await fetch(con.deviceUrl, {
-      headers:{
-        'Accept': 'application/json, */*',
-        'Content-type':'application/json'
-      },
-      method: 'POST',
-      body: JSON.stringify({ email, browser }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`[ITboard] device 作成リクエスト失敗: ${response.status}`);
-    }
-
-    const data = await response.json();
+    const data = await postDevice(email, browser);
     const deviceId = data.device_id;
 
-    if (deviceId) {
-      chrome.storage.local.set({ device_id: deviceId });
-      return deviceId;
-    } else {
+    if (!deviceId) {
       throw new Error(`[ITboard] device_id がレスポンスに含まれていません`);
     }
 
+    setStorageUpdateFlag(true);
+    await chrome.storage.local.set({ device_id: deviceId });
+
+    return deviceId;
+
   } catch (e) {
-    console.error(e.message);
+    setStorageUpdateFlag(false);
+    console.error(`[ITboard] postDeviceEventでエラーが発生: ${e.message}`);
     return null;
   }
 };
 
-let isStorageUpdate = false;
+const postDevice = async (email, browser) => {
+  const response = await fetch(con.deviceUrl, {
+    headers:{
+      'Accept': 'application/json, */*',
+      'Content-type':'application/json'
+    },
+    method: 'POST',
+    body: JSON.stringify({ email, browser }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`[ITboard] device 作成リクエスト失敗: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data;
+};
 
 export const changeStorageEvent = (changes, areaName) => {
-  if (isInternalUpdate) {
-    isInternalUpdate = false;
+  if (isStorageUpdate) {
+    isStorageUpdate = false;
     return;
   }
 
@@ -363,7 +374,7 @@ export const changeStorageEvent = (changes, areaName) => {
             const device = await getDevice(oldValue, user.email, browser);
 
             if (device && device.device_id) {
-              isInternalUpdate = true;
+              setStorageUpdateFlag(true);
               await chrome.storage.local.set({ device_id: device.device_id });
               console.log(`[ITboard] device_id を再設定: ${device.device_id}`);
             } else {
@@ -387,7 +398,7 @@ export const changeStorageEvent = (changes, areaName) => {
             const device = await getDevice(deviceId, user.email, browser);
 
             if (device && device.last_request_at) {
-              isInternalUpdate = true;
+              setStorageUpdateFlag(true);
               await chrome.storage.local.set({ postTimestamp: device.last_request_at });
               console.log(`[ITboard] postTimestamp を再設定: ${device.last_request_at}`);
             } else {
@@ -397,13 +408,14 @@ export const changeStorageEvent = (changes, areaName) => {
         }
       }
     } catch (e) {
-      isInternalUpdate = false;
+      setStorageUpdateFlag(false);
       console.error(e.message);
     }
   });
 };
 
 const getDevice = async (deviceId, email, browser) => {
+  debugger
   try {
     const params = new URLSearchParams({
       device_id: deviceId,

@@ -3,7 +3,8 @@ import {
   changeStorageEvent,
   historyEvent,
   formatDate,
-  historyByBrowser
+  historyByBrowser,
+  setStorageUpdateFlag
 } from "./common.js";
 import { con } from "./const.js";
 
@@ -26,40 +27,57 @@ export const backgroundEvent = () => {
   });
 };
 
-// 履歴情報取得(インストール時)
 const installEvent = () => {
   chrome.identity.getProfileUserInfo(async (user) => {
-    if (user.email) {
+    try {
+      if (!user || !user.email) {
+        throw new Error("[ITboard] email取得失敗");
+      }
+
       setUninstallUrl(user.email);
 
       const deviceId = await postDeviceEvent(user.email);
 
       if (!deviceId) {
-        console.error("[ITboard] device_id 取得処理失敗");
-        return;
+        throw new Error("[ITboard] device_id 取得処理に失敗");
       }
 
       const now = new Date();
-      chrome.storage.local.set({ postTimestamp: now.getTime() });
-      historyEvent(user.email, deviceId);
+      setStorageUpdateFlag(true);
+      await chrome.storage.local.set({ postTimestamp: now.getTime() });
+
+      await historyEvent(user.email, deviceId);
+
+      console.log("[ITboard] インストール時の履歴保存処理が完了");
+    } catch (e) {
+      setStorageUpdateFlag(false);
+      console.error(`[ITboard] installEventの処理中にエラーが発生: ${e.message}`);
     }
   });
-}
+};
 
 // タブ内で遷移した時の処理
 const tabNavigationEvent = () => {
   shouldSendHistory(async (shouldSend, user, beforePostTimestamp) => {
-    if (shouldSend && user && user.email && beforePostTimestamp) {
-      const deviceId = await postDeviceEvent(user.email);
+    try {
+      if (shouldSend && user && user.email && beforePostTimestamp) {
 
-      if (!deviceId) {
-        console.error("[ITboard] device_id 取得処理失敗");
-        return;
+        const deviceId = await postDeviceEvent(user.email);
+        if (!deviceId) {
+          throw new Error("[ITboard] device_id 取得処理失敗");
+        }
+
+        const now = new Date();
+        setStorageUpdateFlag(true);
+        await chrome.storage.local.set({ postTimestamp: now.getTime() });
+
+        await historyEvent(user.email, deviceId, beforePostTimestamp);
+
+        console.log("[ITboard] タブ新規作成・画面遷移時の履歴保存処理が完了");
       }
-
-      const now = new Date();
-      chrome.storage.local.set({ postTimestamp: now.getTime() });
-      historyEvent(user.email, deviceId, beforePostTimestamp);
+    } catch (e) {
+      setStorageUpdateFlag(false);
+      console.error(`[ITboard] tabNavigationEventの処理中にエラーが発生: ${e.message}`);
     }
   });
 };
