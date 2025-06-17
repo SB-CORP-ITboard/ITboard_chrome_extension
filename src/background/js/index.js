@@ -23,10 +23,6 @@ export const backgroundEvent = () => {
   });
 
   chrome.storage.onChanged.addListener((changes, areaName) => {
-    if (isStorageUpdate) {
-      isStorageUpdate = false;
-      return;
-    }
     changeStorageEvent(changes, areaName)
   });
 
@@ -58,11 +54,14 @@ export const backgroundEvent = () => {
 const installEvent = () => {
   chrome.identity.getProfileUserInfo(async (user) => {
     try {
+      setStorageUpdateFlag(true);
+      await chrome.storage.local.set({ postTimestamp: now.getTime() });
+
       if (!user || !user.email) {
         throw new Error("[ITboard] email取得失敗");
       }
 
-      setUninstallUrl(user.email);
+      const now = new Date();
 
       const deviceId = await postDeviceEvent(user.email);
 
@@ -70,9 +69,7 @@ const installEvent = () => {
         throw new Error("[ITboard] device_id 取得処理に失敗");
       }
 
-      const now = new Date();
-      setStorageUpdateFlag(true);
-      await chrome.storage.local.set({ postTimestamp: now.getTime() });
+      setUninstallUrl(user.email, deviceId);
 
       await historyEvent(user.email, deviceId);
 
@@ -95,6 +92,8 @@ const tabNavigationEvent = () => {
           throw new Error("[ITboard] device_id 取得処理失敗");
         }
 
+        setUninstallUrl(user.email, deviceId);
+
         const now = new Date();
         setStorageUpdateFlag(true);
         await chrome.storage.local.set({ postTimestamp: now.getTime() });
@@ -113,9 +112,7 @@ const tabNavigationEvent = () => {
 // 履歴を送信すべきかどうかを判断する共通ロジック
 const shouldSendHistory = (callback) => {
   chrome.identity.getProfileUserInfo((user) => {
-    if (user.email) {
-      setUninstallUrl(user.email);
-    } else {
+    if (!user.email) {
       callback(false, null);
       return;
     }
@@ -144,11 +141,16 @@ const shouldSendHistory = (callback) => {
 };
 
 // 拡張機能アンインストール時、GETリクエストでシャドーIT拡張機能に関連するデータを削除する。
-const setUninstallUrl = (email) => {
-  const uninstallUrl = `${con.getUninstallUrl}?${new URLSearchParams({
+const setUninstallUrl = async (email, deviceId) => {
+  const params = {
     email,
-    browser: historyByBrowser()
-  }).toString()}`;
+    browser: historyByBrowser(),
+    device_id: deviceId
+  };
+
+  const uninstallUrl = `${con.getUninstallUrl}?${new URLSearchParams(
+    params,
+  ).toString()}`;
 
   chrome.runtime.setUninstallURL(uninstallUrl);
 };

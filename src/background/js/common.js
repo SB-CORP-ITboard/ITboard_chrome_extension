@@ -1,8 +1,9 @@
 import { con } from "./const.js";
 
 let isStorageUpdate = false;
+
 export const setStorageUpdateFlag = (value) => {
-  isInternalUpdate = value;
+  isStorageUpdate = value;
 };
 
 export const historyEvent = async (email, deviceId, beforePostTimestamp = undefined) => {
@@ -305,14 +306,10 @@ export const postDeviceEvent = async (email) => {
   try {
     const storage = await chrome.storage.local.get('device_id');
 
-    if (storage.device_id) {
-      return storage.device_id;
-    }
-
     const browser = historyByBrowser();
 
-    const data = await postDevice(email, browser);
-    const deviceId = data.device_id;
+    const device = await postDevice(email, browser, storage.device_id);
+    const deviceId = device.device_id;
 
     if (!deviceId) {
       throw new Error(`[ITboard] device_id がレスポンスに含まれていません`);
@@ -330,14 +327,14 @@ export const postDeviceEvent = async (email) => {
   }
 };
 
-const postDevice = async (email, browser) => {
+const postDevice = async (email, browser, deviceId) => {
   const response = await fetch(con.deviceUrl, {
     headers:{
       'Accept': 'application/json, */*',
       'Content-type':'application/json'
     },
     method: 'POST',
-    body: JSON.stringify({ email, browser }),
+    body: JSON.stringify({ email, browser, deviceId }),
   });
 
   if (!response.ok) {
@@ -349,6 +346,11 @@ const postDevice = async (email, browser) => {
 };
 
 export const changeStorageEvent = (changes, areaName) => {
+  if (isStorageUpdate) {
+    isStorageUpdate = false;
+    return;
+  }
+
   if (areaName !== 'local') {
     return;
   }
@@ -366,7 +368,7 @@ export const changeStorageEvent = (changes, areaName) => {
           const { oldValue, newValue } = changes.device_id;
 
           if (oldValue !== newValue) {
-            const device = await getDevice(oldValue, user.email, browser);
+            const device = await postDevice(user.email, browser, oldValue);
 
             if (device && device.device_id) {
               setStorageUpdateFlag(true);
@@ -384,18 +386,18 @@ export const changeStorageEvent = (changes, areaName) => {
 
           if (oldValue !== newValue) {
             const storage = await chrome.storage.local.get('device_id');
-            const deviceId = storage.device_id;
 
-            if (!deviceId) {
-              throw new Error('[ITboard] ローカルストレージからdevice_id 取得失敗');
-            }
-
-            const device = await getDevice(deviceId, user.email, browser);
+            const device = await postDevice(user.email, browser, storage.device_id);
 
             if (device && device.last_request_at) {
+              const timestamp = new Date(device.last_request_at).getTime()
               setStorageUpdateFlag(true);
-              await chrome.storage.local.set({ postTimestamp: device.last_request_at });
-              console.log(`[ITboard] postTimestamp を再設定: ${device.last_request_at}`);
+              if (device.device_id == storage.device_id) {
+                await chrome.storage.local.set({ postTimestamp: timestamp });
+              } else {
+                await chrome.storage.local.set({ postTimestamp: timestamp, device_id: device.device_id });
+              }
+              console.log(`[ITboard] postTimestamp を再設定: ${timestamp}`);
             } else {
               throw new Error('[ITboard] レスポンスから last_request_at を取得失敗');
             }
@@ -407,36 +409,4 @@ export const changeStorageEvent = (changes, areaName) => {
       console.error(e.message);
     }
   });
-};
-
-const getDevice = async (deviceId, email, browser) => {
-  debugger
-  try {
-    const params = new URLSearchParams({
-      device_id: deviceId,
-      email: email,
-      browser: browser,
-    });
-
-    const url = `${con.deviceUrl}?${params.toString()}`;
-
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        "Accept": "application/json",
-        "Content-Type": "application/json"
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`[ITboard] device 取得リクエスト失敗: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data;
-
-  } catch (e) {
-    console.error(e.message);
-    return null;
-  }
 };
