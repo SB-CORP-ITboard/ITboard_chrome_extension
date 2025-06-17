@@ -54,14 +54,14 @@ export const backgroundEvent = () => {
 const installEvent = () => {
   chrome.identity.getProfileUserInfo(async (user) => {
     try {
+      const now = new Date();
+
       setStorageUpdateFlag(true);
       await chrome.storage.local.set({ postTimestamp: now.getTime() });
 
       if (!user || !user.email) {
         throw new Error("[ITboard] email取得失敗");
       }
-
-      const now = new Date();
 
       const deviceId = await postDeviceEvent(user.email);
 
