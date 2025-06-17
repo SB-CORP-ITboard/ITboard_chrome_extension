@@ -11,8 +11,10 @@ import { con } from "./const.js";
 // 各タイミングで処理を行う
 export const backgroundEvent = () => {
   // インストール時
-  chrome.runtime.onInstalled.addListener(() => {
-    installEvent();
+  chrome.runtime.onInstalled.addListener((details) => {
+    if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
+      installEvent();
+    }
   });
 
   // 新しいタブが開かれた時 or タブ内で画面遷移した時
