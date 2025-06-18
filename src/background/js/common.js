@@ -1,9 +1,19 @@
 import { con } from "./const.js";
 
-export const historyEvent = async (email) => {
+let isStorageUpdate = false;
+
+export const setStorageUpdateFlag = (value) => {
+  isStorageUpdate = value;
+};
+
+export const historyEvent = async (email, deviceId, beforePostTimestamp = undefined) => {
   try {
     const browser = historyByBrowser();
-    chrome.history.search(con.searchQuery, async (accessItems) => {
+    const searchQuery = {
+      ...con.searchQuery,
+      startTime: beforePostTimestamp || con.searchQuery.startTime
+    };
+    chrome.history.search(searchQuery, async (accessItems) => {
       try {
         // 履歴データ形成（Promiseで確実にデータを取得）
         const data = await formatHistoryData(accessItems);
@@ -17,6 +27,7 @@ export const historyEvent = async (email) => {
           body: JSON.stringify({
             email: email,
             browser: browser,
+            deviceId: deviceId,
             data: data
           }),
         })
@@ -88,7 +99,7 @@ const formatHistoryData = async (accessItems) => {
 };
 
 // 履歴取得したブラウザを判別
-const historyByBrowser = () => {
+export const historyByBrowser = () => {
   const agent = navigator.userAgent.toLowerCase()
   if (agent.indexOf("edg") != -1) {
     return 'edge'
@@ -288,5 +299,114 @@ const sendHistoryLogData = (email, browser, data, sendId, timestamp, manifest, d
       `Failed to send history log: ${error.message}`,
       error.stack
     );
+  });
+};
+
+export const postDeviceEvent = async (email) => {
+  try {
+    const storage = await chrome.storage.local.get('device_id');
+
+    const browser = historyByBrowser();
+
+    const device = await postDevice(email, browser, storage.device_id);
+    const deviceId = device.device_id;
+
+    if (!deviceId) {
+      throw new Error(`[ITboard] device_id がレスポンスに含まれていません`);
+    }
+
+    setStorageUpdateFlag(true);
+    await chrome.storage.local.set({ device_id: deviceId });
+
+    return deviceId;
+
+  } catch (e) {
+    setStorageUpdateFlag(false);
+    console.error(`[ITboard] postDeviceEventでエラーが発生: ${e.message}`);
+    return null;
+  }
+};
+
+const postDevice = async (email, browser, deviceId) => {
+  const response = await fetch(con.deviceUrl, {
+    headers:{
+      'Accept': 'application/json, */*',
+      'Content-type':'application/json'
+    },
+    method: 'POST',
+    body: JSON.stringify({ email, browser, deviceId }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`[ITboard] device 作成リクエスト失敗: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+export const changeStorageEvent = (changes, areaName) => {
+  if (isStorageUpdate) {
+    isStorageUpdate = false;
+    return;
+  }
+
+  if (areaName !== 'local') {
+    return;
+  }
+
+  if (!changes.device_id && !changes.postTimestamp) {
+    return;
+  }
+
+  chrome.identity.getProfileUserInfo(async (user) => {
+    try {
+      if (user.email) {
+        const browser = historyByBrowser();
+        // device_id が変更された場合の処理
+        if (changes.device_id) {
+          const { oldValue, newValue } = changes.device_id;
+
+          if (oldValue !== newValue) {
+            const device = await postDevice(user.email, browser, oldValue);
+
+            if (device && device.device_id) {
+              setStorageUpdateFlag(true);
+              await chrome.storage.local.set({ device_id: device.device_id });
+              console.log(`[ITboard] device_id を再設定: ${device.device_id}`);
+            } else {
+              throw new Error('[ITboard] レスポンスから device_id を取得失敗');
+            }
+          }
+        }
+
+        // postTimestamp が変更された場合の処理
+        if (changes.postTimestamp) {
+          const { oldValue, newValue } = changes.postTimestamp;
+
+          if (oldValue !== newValue) {
+            const storage = await chrome.storage.local.get('device_id');
+
+            const device = await postDevice(user.email, browser, storage.device_id);
+
+            if (device && device.last_request_at) {
+              const timestamp = new Date(device.last_request_at).getTime()
+              setStorageUpdateFlag(true);
+              if (device.device_id == storage.device_id) {
+                await chrome.storage.local.set({ postTimestamp: timestamp });
+              } else {
+                await chrome.storage.local.set({ postTimestamp: timestamp, device_id: device.device_id });
+              }
+              console.log(`[ITboard] postTimestamp を再設定: ${timestamp}`);
+            } else {
+              throw new Error('[ITboard] レスポンスから last_request_at を取得失敗');
+            }
+          }
+        }
+      }
+    } catch (e) {
+      setStorageUpdateFlag(false);
+      console.error(e.message);
+    }
   });
 };
