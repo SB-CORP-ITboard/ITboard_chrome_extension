@@ -53,6 +53,7 @@ export const backgroundEvent = () => {
   });
 };
 
+// 履歴情報取得(インストール時)
 const installEvent = () => {
   chrome.identity.getProfileUserInfo(async (user) => {
     try {
