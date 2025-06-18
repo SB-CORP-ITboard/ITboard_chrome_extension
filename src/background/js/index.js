@@ -1,14 +1,20 @@
 import {
+  postDeviceEvent,
+  changeStorageEvent,
   historyEvent,
-  formatDate
+  formatDate,
+  historyByBrowser,
+  setStorageUpdateFlag
 } from "./common.js";
 import { con } from "./const.js";
 
 // 各タイミングで処理を行う
 export const backgroundEvent = () => {
   // インストール時
-  chrome.runtime.onInstalled.addListener(() => {
-    installEvent();
+  chrome.runtime.onInstalled.addListener((details) => {
+    if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
+      installEvent();
+    }
   });
 
   // 新しいタブが開かれた時 or タブ内で画面遷移した時
@@ -17,27 +23,91 @@ export const backgroundEvent = () => {
       tabNavigationEvent();
     }
   });
+
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    changeStorageEvent(changes, areaName)
+  });
+
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === "getOrCreateDeviceId") {
+      (async () => {
+        const deviceId = await postDeviceEvent(message.payload.email);
+        sendResponse({ deviceId: deviceId });
+      })();
+      return true;
+    }
+    if (message.action === "updateTimestampAndHistoryEvent") {
+      (async () => {
+        try {
+          setStorageUpdateFlag(true);
+          await chrome.storage.local.set({ postTimestamp: message.payload.timestamp });
+          await historyEvent(message.payload.email, message.payload.deviceId);
+          sendResponse({ status: "success" });
+        } catch (error) {
+          setStorageUpdateFlag(false);
+          sendResponse({ status: "error", message: error.message });
+        }
+      })();
+      return true;
+    }
+  });
 };
 
 // 履歴情報取得(インストール時)
 const installEvent = () => {
-  chrome.identity.getProfileUserInfo((user) => {
-    if (user.email) {
-      setUninstallUrl(user.email);
+  chrome.identity.getProfileUserInfo(async (user) => {
+    try {
       const now = new Date();
-      chrome.storage.local.set({ postTimestamp: now.getTime() });
-      historyEvent(user.email);
+
+      setStorageUpdateFlag(true);
+      await chrome.storage.local.set({ postTimestamp: now.getTime() });
+
+      if (!user || !user.email) {
+        throw new Error("[ITboard] email取得失敗");
+      }
+
+      const deviceId = await postDeviceEvent(user.email);
+
+      if (!deviceId) {
+        throw new Error("[ITboard] device_id 取得処理に失敗");
+      }
+
+      setUninstallUrl(user.email, deviceId);
+
+      await historyEvent(user.email, deviceId);
+
+      console.log("[ITboard] インストール時の履歴保存処理が完了");
+    } catch (e) {
+      setStorageUpdateFlag(false);
+      console.error(`[ITboard] installEventの処理中にエラーが発生: ${e.message}`);
     }
   });
-}
+};
 
 // タブ内で遷移した時の処理
 const tabNavigationEvent = () => {
-  shouldSendHistory((shouldSend, user, beforePostTimestamp) => {
-    if (shouldSend && user && user.email && beforePostTimestamp) {
-      const now = new Date();
-      chrome.storage.local.set({ postTimestamp: now.getTime() });
-      historyEvent(user.email, beforePostTimestamp);
+  shouldSendHistory(async (shouldSend, user, beforePostTimestamp) => {
+    try {
+      if (shouldSend && user && user.email && beforePostTimestamp) {
+
+        const deviceId = await postDeviceEvent(user.email);
+        if (!deviceId) {
+          throw new Error("[ITboard] device_id 取得処理失敗");
+        }
+
+        setUninstallUrl(user.email, deviceId);
+
+        const now = new Date();
+        setStorageUpdateFlag(true);
+        await chrome.storage.local.set({ postTimestamp: now.getTime() });
+
+        await historyEvent(user.email, deviceId, beforePostTimestamp);
+
+        console.log("[ITboard] タブ新規作成・画面遷移時の履歴保存処理が完了");
+      }
+    } catch (e) {
+      setStorageUpdateFlag(false);
+      console.error(`[ITboard] tabNavigationEventの処理中にエラーが発生: ${e.message}`);
     }
   });
 };
@@ -45,9 +115,7 @@ const tabNavigationEvent = () => {
 // 履歴を送信すべきかどうかを判断する共通ロジック
 const shouldSendHistory = (callback) => {
   chrome.identity.getProfileUserInfo((user) => {
-    if (user.email) {
-      setUninstallUrl(user.email);
-    } else {
+    if (!user.email) {
       callback(false, null);
       return;
     }
@@ -76,8 +144,16 @@ const shouldSendHistory = (callback) => {
 };
 
 // 拡張機能アンインストール時、GETリクエストでシャドーIT拡張機能に関連するデータを削除する。
-const setUninstallUrl = (userEmail) => {
-  chrome.runtime.setUninstallURL(
-    con.getUninstallUrl + '?email=' + userEmail
-  )
+const setUninstallUrl = async (email, deviceId) => {
+  const params = {
+    email,
+    browser: historyByBrowser(),
+    device_id: deviceId
+  };
+
+  const uninstallUrl = `${con.getUninstallUrl}?${new URLSearchParams(
+    params,
+  ).toString()}`;
+
+  chrome.runtime.setUninstallURL(uninstallUrl);
 };
